@@ -3,11 +3,111 @@
 
 #include "pch.h"
 #include <iostream>
-#include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 const GLint WIDTH = 1920, HEIGHT = 1080;
+GLuint VBO, VAO, sShader;
+
+//Vertex Shader
+static const char* vShader = "									\n\
+#version 330													\n\
+																\n\
+layout (location = 0) in vec3 pos;								\n\
+																\n\
+void main()														\n\
+{																\n\
+	gl_Position = vec4(0.1 * pos.x, 0.1 * pos.y, pos.z, 1.0);	\n\
+}";
+
+//Fragment Shader
+static const char* fShader = "									\n\
+#version 330													\n\
+																\n\
+out vec4 colour;												\n\
+																\n\
+void main()														\n\
+{																\n\
+	colour = vec4(0.1f, 0.9f, 0.3f, 1.0);						\n\
+}";
+
+void CreateTriangle()
+{
+	GLfloat vertices[] = {
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f,
+		0.0f,1.0f,0.0f
+	};
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void AddShader(GLuint program, const char* shaderCode, GLenum shaderType) 
+{
+	GLuint shader = glCreateShader(shaderType);
+	const GLchar* code[1];
+	code[0] = shaderCode;
+	GLint codeLength[1];
+	codeLength[0] = strlen(shaderCode);
+	glShaderSource(shader, 1, code, codeLength);
+	glCompileShader(shader);
+
+	GLint result = 0;
+	GLchar eLog[1024] = { 0 };
+
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+	if (!result) {
+		glGetShaderInfoLog(shader, sizeof(eLog), NULL, eLog);
+		std::cout << "Error compiling the " <<shaderType << ": "<< eLog << std::endl;
+		return;
+	}
+	
+	glAttachShader(program, shader);
+}
+
+void CompileShaders()
+{
+	sShader = glCreateProgram();
+	
+	if (!sShader) {
+		std::cout << "Create shader program failed!\n";
+		return;
+	}
+
+	AddShader(sShader, vShader, GL_VERTEX_SHADER);
+	AddShader(sShader, fShader, GL_FRAGMENT_SHADER);
+
+	GLint result = 0;
+	GLchar eLog[1024] = { 0 };
+
+	glLinkProgram(sShader);
+	glGetProgramiv(sShader, GL_LINK_STATUS, &result);
+	if (!result) {
+		glGetProgramInfoLog(sShader, sizeof(eLog), NULL, eLog);
+		std::cout << "Error linking program: " << eLog << std::endl;
+		return;
+	}
+
+	glValidateProgram(sShader);
+	glGetProgramiv(sShader, GL_VALIDATE_STATUS, &result);
+	if (!result) {
+		glGetProgramInfoLog(sShader, sizeof(eLog), NULL, eLog);
+		std::cout << "Error validate program: " << eLog << std::endl;
+		return;
+	}
+
+}
+
 int main()
 {
 	//Initialize GLFW
@@ -56,6 +156,9 @@ int main()
 	//Setup Viewport size
 	glViewport(0, 0, bufWidth, bufHeight);
 
+	CreateTriangle();
+	CompileShaders();
+
 	//loop until window closed
 	while (!glfwWindowShouldClose(mainWindow))
 	{
@@ -63,8 +166,19 @@ int main()
 		glfwPollEvents();
 
 		//Clear window
-		glClearColor(1.0f, 0.0f, 0.5f,1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		glUseProgram(sShader);
+
+		glBindVertexArray(VAO);
+		for (int i = 0; i < 1000000; i++) {
+
+			glDrawArrays(GL_TRIANGLES,0,3);
+		}
+		glBindVertexArray(0);
+
+		glUseProgram(0);
 
 		glfwSwapBuffers(mainWindow);
 	}
