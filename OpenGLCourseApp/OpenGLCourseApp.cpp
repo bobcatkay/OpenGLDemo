@@ -5,41 +5,73 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cmath>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 const GLint WIDTH = 1920, HEIGHT = 1080;
-GLuint VBO, VAO, sShader;
+const float TO_RADIANS = 3.14159265f / 180.0f;
+GLuint VBO, VAO, IBO, sShader,uniformModel,uniformProjection;
+
+bool direction = true;
+float triOffset = 0.0f;
+float triMaxOffset = 0.6f;
+float triIncrement = 0.005f;
+float curAngle = 0.0f;
+
+bool sizeDirection = true;
+float curSize = 0.4f;
+float maxSize = 0.8f;
+float minSize = 0.1f;
 
 //Vertex Shader
 static const char* vShader = "									\n\
 #version 330													\n\
 																\n\
 layout (location = 0) in vec3 pos;								\n\
+out vec4 vCol;													\n\
+uniform mat4 model;												\n\
+uniform mat4 projection;										\n\
 																\n\
 void main()														\n\
 {																\n\
-	gl_Position = vec4(0.1 * pos.x, 0.1 * pos.y, pos.z, 1.0);	\n\
+	gl_Position = projection * model * vec4(pos, 1.0);						\n\
+	vCol = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);					\n\
 }";
 
 //Fragment Shader
 static const char* fShader = "									\n\
 #version 330													\n\
 																\n\
+in vec4 vCol;													\n\
 out vec4 colour;												\n\
 																\n\
 void main()														\n\
 {																\n\
-	colour = vec4(0.1f, 0.9f, 0.3f, 1.0);						\n\
+	colour = vCol;												\n\
 }";
 
 void CreateTriangle()
 {
+	unsigned int indices[] = {
+		0,3,1,
+		1,3,2,
+		2,3,0,
+		0,1,2
+	};
 	GLfloat vertices[] = {
 		-1.0f,-1.0f,0.0f,
+		0.0f,-1.0f,1.0f,
 		1.0f,-1.0f,0.0f,
 		0.0f,1.0f,0.0f
 	};
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -50,6 +82,7 @@ void CreateTriangle()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void AddShader(GLuint program, const char* shaderCode, GLenum shaderType) 
@@ -106,6 +139,8 @@ void CompileShaders()
 		return;
 	}
 
+	uniformModel = glGetUniformLocation(sShader, "model");
+	uniformProjection = glGetUniformLocation(sShader, "projection");
 }
 
 int main()
@@ -127,6 +162,9 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//Allow forward compatibility
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	//Allow msaa
+	glfwWindowHint(GLFW_SAMPLES, 64);
+
 
 	GLFWwindow *mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
 	if (!mainWindow) {
@@ -153,11 +191,16 @@ int main()
 		return 1;
 	}
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
+
 	//Setup Viewport size
 	glViewport(0, 0, bufWidth, bufHeight);
 
 	CreateTriangle();
 	CompileShaders();
+
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufWidth / (GLfloat)bufHeight, 0.1f, 100.0f);
 
 	//loop until window closed
 	while (!glfwWindowShouldClose(mainWindow))
@@ -165,18 +208,54 @@ int main()
 		//Get + handle user input events
 		glfwPollEvents();
 
+		if (direction) {
+			triOffset += triIncrement;
+		}
+		else {
+			triOffset -= triIncrement;
+		}
+
+		if (abs(triOffset) >= triMaxOffset) {
+			direction = !direction;
+		}
+
+		curAngle += 1.0f;
+		if (curAngle >= 360) {
+			curAngle -= 360;
+		}
+
+		if (sizeDirection) {
+			curSize += 0.005f;
+		}
+		else {
+			curSize -= 0.005f;
+		}
+
+		if (curSize >= maxSize || curSize <= minSize) {
+			sizeDirection = !sizeDirection;
+		}
+
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(sShader);
 
-		glBindVertexArray(VAO);
-		for (int i = 0; i < 1000000; i++) {
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -1.5f));
+		model = glm::rotate(model, curAngle * TO_RADIANS, glm::vec3(1.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
-			glDrawArrays(GL_TRIANGLES,0,3);
-		}
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
 		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		glUseProgram(0);
 
@@ -184,14 +263,3 @@ int main()
 	}
 
 }
-
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
-
-// 入门提示: 
-//   1. 使用解决方案资源管理器窗口添加/管理文件
-//   2. 使用团队资源管理器窗口连接到源代码管理
-//   3. 使用输出窗口查看生成输出和其他消息
-//   4. 使用错误列表窗口查看错误
-//   5. 转到“项目”>“添加新项”以创建新的代码文件，或转到“项目”>“添加现有项”以将现有代码文件添加到项目
-//   6. 将来，若要再次打开此项目，请转到“文件”>“打开”>“项目”并选择 .sln 文件
