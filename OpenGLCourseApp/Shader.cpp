@@ -18,6 +18,35 @@ void Shader::CreateFromString(const char* vetexCode, const char* fragmentCode)
 	ComplieShader(vetexCode, fragmentCode);
 }
 
+void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLocation)
+{
+	std::string vertexString = ReadFile(vertexLocation);
+	std::string fragString = ReadFile(fragmentLocation);
+
+	const char* vertexCode = vertexString.c_str();
+	const char* fragmentCode = fragString.c_str();
+
+	ComplieShader(vertexCode, fragmentCode);
+}
+
+std::string Shader::ReadFile(const char* fileLocation)
+{
+	std::string content;
+	std::ifstream fileStream(fileLocation, std::ios::in);
+
+	if (!fileStream.is_open()) {
+		std::cout << "Failed to read " << fileLocation << ".\n";
+		return "";
+	}
+	std::string line = "";
+	while (!fileStream.eof()) {
+		std::getline(fileStream, line);
+		content.append(line + "\n");
+	}
+	fileStream.close();
+	return content;
+}
+
 GLuint Shader::GetProjectionLocation()
 {
 	return uniformProjection;
