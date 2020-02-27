@@ -27,12 +27,12 @@
     <ClInclude Include="Window.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenGLCourseApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
@@ -42,6 +42,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Window.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
