@@ -40,6 +40,8 @@ void Texture::LoadTexture()
 
 void Texture::UseTexture()
 {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
 void Texture::ClearTexture()

@@ -11,6 +11,8 @@
 #include "Window.h"
 #include "Camera.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+
 Window mainWindow;
 Camera camera;
 
