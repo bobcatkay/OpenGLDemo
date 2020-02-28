@@ -117,11 +117,11 @@ void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int m
 	if (key >= 0 && key < 1024) {
 		if (action == GLFW_PRESS) {
 			theWindow->keys[key] = true;
-			printf("Pressed:%d\n", key);
+			//printf("Pressed:%d\n", key);
 		}
 		else if (action == GLFW_RELEASE) {
 			theWindow->keys[key] = false;
-			printf("Released:%d\n", key);
+			//printf("Released:%d\n", key);
 		}
 	}
 }

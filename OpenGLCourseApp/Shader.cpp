@@ -62,6 +62,11 @@ GLuint Shader::GetViewLocation()
 	return uniformView;
 }
 
+GLuint Shader::GetAmbientIntensityLocation()
+{
+	return uniformAmbientIntensity;
+}
+
 
 void Shader::ClearShader()
 {
@@ -71,6 +76,36 @@ void Shader::ClearShader()
 	}
 	uniformModel = 0;
 	uniformProjection = 0;
+}
+
+GLuint Shader::GetAmbientColourLocation()
+{
+	return uniformAmbientColour;
+}
+
+GLuint Shader::GetDiffuseIntensityLocation()
+{
+	return uniformDiffuseIntensity;
+}
+
+GLuint Shader::GetDirectionLocation()
+{
+	return uniformDirection;
+}
+
+GLuint Shader::GetSpecularIntensityLocation()
+{
+	return uniformSpecularIntensity;
+}
+
+GLuint Shader::GetShininessLocation()
+{
+	return uniformShininess;
+}
+
+GLuint Shader::GetEyePositionLocation()
+{
+	return uniformEyePosition;
 }
 
 void Shader::UseShader()
@@ -111,6 +146,13 @@ void Shader::ComplieShader(const char* vertexCode, const char* fragmentCode)
 	uniformModel = glGetUniformLocation(shaderID, "model");
 	uniformProjection = glGetUniformLocation(shaderID, "projection");
 	uniformView = glGetUniformLocation(shaderID, "view");
+	uniformAmbientColour = glGetUniformLocation(shaderID, "directionalLight.colour");
+	uniformAmbientIntensity= glGetUniformLocation(shaderID, "directionalLight.ambientIntensity");
+	uniformDirection = glGetUniformLocation(shaderID, "directionalLight.direction");
+	uniformDiffuseIntensity = glGetUniformLocation(shaderID, "directionalLight.diffuseIntensity");
+	uniformSpecularIntensity = glGetUniformLocation(shaderID, "material.specularIntensity");
+	uniformShininess = glGetUniformLocation(shaderID, "material.shininess");
+	uniformEyePosition = glGetUniformLocation(shaderID, "eyePosition");
 }
 
 void Shader::AddShader(GLuint program, const char* shaderCode, GLenum shaderType)

@@ -30,6 +30,18 @@
     <ClInclude Include="Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -50,13 +62,30 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Shader.vert">
+    <None Include="Shaders\shader.frag">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="Shaders\Shader.frag">
+    <None Include="Shaders\shader.vert">
       <Filter>资源文件</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\brick.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Textures\dirt.png">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
