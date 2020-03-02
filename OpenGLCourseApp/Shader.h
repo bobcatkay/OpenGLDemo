@@ -4,6 +4,10 @@
 #include <string>
 
 #include <GL/glew.h>
+#include "DirectionalLight.h"
+#include "PointLight.h"
+#include "Common.h"
+#include "SpotLight.h"
 class Shader
 {
 public:
@@ -24,13 +28,56 @@ public:
 	GLuint GetShininessLocation();
 	GLuint GetEyePositionLocation();
 
+	void SetDirectionalLight(DirectionalLight* dLight);
+	void SetPointLights(PointLight* pLight, unsigned int lightCount);
+	void SetSpotLights(SpotLight* sLight, unsigned int lightCount);
+
 	void UseShader();
 	void ClearShader();
 	~Shader();
 private:
+	int pointLightCount;
+	int spotLightCount;
 	GLuint shaderID, uniformProjection, uniformModel,uniformView,
-		uniformAmbientIntensity,uniformAmbientColour,uniformDiffuseIntensity, uniformDirection,
 		uniformEyePosition,uniformSpecularIntensity,uniformShininess;
+
+	struct {
+		GLuint uniformColour;
+		GLuint uniformAmbientIntensity;
+		GLuint uniformDiffuseIntensity;
+
+		GLuint uniformDirection;
+	} uniformDirectionalLight;
+
+	GLuint uniformPointLightCount;
+
+	struct {
+		GLuint uniformColour;
+		GLuint uniformAmbientIntensity;
+		GLuint uniformDiffuseIntensity;
+
+		GLuint uniformPosition;
+		GLuint uniformConstant;
+		GLuint uniformLinear;
+		GLuint uniformExponent;
+	} uniformPointLight[MAX_POINT_LIGHTS];
+
+	GLuint uniformSpotLightCount;
+
+	struct {
+		GLuint uniformColour;
+		GLuint uniformAmbientIntensity;
+		GLuint uniformDiffuseIntensity;
+
+		GLuint uniformPosition;
+		GLuint uniformConstant;
+		GLuint uniformLinear;
+		GLuint uniformExponent;
+
+		GLuint uniformDirection;
+		GLuint uniformEdge;
+	} uniformSpotLight[MAX_SPOT_LIGHTS];
+
 	void ComplieShader(const char* vertexCode, const char* fragmentCode);
 	void AddShader(GLuint program, const char* shaderCode, GLenum shaderType);
 };
