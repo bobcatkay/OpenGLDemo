@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Mesh.h"
 
 Mesh::Mesh()
@@ -9,12 +8,7 @@ Mesh::Mesh()
 	indexCount = 0;
 }
 
-Mesh::~Mesh()
-{
-	ClearMesh();
-}
-
-void Mesh::CreateMesh(GLfloat* vertices, unsigned int* indices, unsigned int numOfVertices, unsigned int numOfIndices)
+void Mesh::CreateMesh(GLfloat *vertices, unsigned int *indices, unsigned int numOfVertices, unsigned int numOfIndices)
 {
 	indexCount = numOfIndices;
 
@@ -46,30 +40,36 @@ void Mesh::RenderMesh()
 {
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-
-	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void Mesh::ClearMesh()
 {
-	if (IBO != 0) {
+	if (IBO != 0)
+	{
 		glDeleteBuffers(1, &IBO);
 		IBO = 0;
 	}
 
-	if (VBO != 0) {
+	if (VBO != 0)
+	{
 		glDeleteBuffers(1, &VBO);
 		VBO = 0;
 	}
 
-	if (VAO != 0) {
-		glDeleteBuffers(1, &VAO);
+	if (VAO != 0)
+	{
+		glDeleteVertexArrays(1, &VAO);
 		VAO = 0;
 	}
 
 	indexCount = 0;
+}
 
+
+Mesh::~Mesh()
+{
+	ClearMesh();
 }

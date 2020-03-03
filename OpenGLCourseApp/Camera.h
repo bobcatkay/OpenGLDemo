@@ -1,20 +1,27 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <GL\glew.h>
+
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+
+#include <GLFW\glfw3.h>
+
 class Camera
 {
 public:
 	Camera();
-	Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch,GLfloat startMoveSpeed,GLfloat startTurnSpeed);
-	~Camera();
+	Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat startMoveSpeed, GLfloat startTurnSpeed);
 
-	void KeyControl(bool* keys,GLfloat deltaTime);
-	void MouseControl(GLfloat xChange, GLfloat yChange);
-	glm::vec3 GetCameraPosition();
-	glm::mat4 CalculoateViewMatirx();
+	void keyControl(bool* keys, GLfloat deltaTime);
+	void mouseControl(GLfloat xChange, GLfloat yChange);
+
+	glm::vec3 getCameraPosition();
+	glm::vec3 getCameraDirection();
+
+	glm::mat4 calculateViewMatrix();
+
+	~Camera();
 
 private:
 	glm::vec3 position;

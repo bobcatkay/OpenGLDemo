@@ -1,11 +1,12 @@
-#include "pch.h"
 #include "SpotLight.h"
 
-SpotLight::SpotLight():PointLight()
+
+
+SpotLight::SpotLight() : PointLight()
 {
 	direction = glm::vec3(0.0f, -1.0f, 0.0f);
 	edge = 0.0f;
-	proceEdge = cosf(glm::radians(edge));
+	procEdge = cosf(glm::radians(edge));
 }
 
 SpotLight::SpotLight(GLfloat red, GLfloat green, GLfloat blue, 
@@ -13,17 +14,17 @@ SpotLight::SpotLight(GLfloat red, GLfloat green, GLfloat blue,
 	GLfloat xPos, GLfloat yPos, GLfloat zPos, 
 	GLfloat xDir, GLfloat yDir, GLfloat zDir, 
 	GLfloat con, GLfloat lin, GLfloat exp, 
-	GLfloat edg):PointLight(red,green,blue,aIntensity,dIntensity,xPos,yPos,zPos,con,lin,exp)
+	GLfloat edg) : PointLight(red, green, blue, aIntensity, dIntensity, xPos, yPos, zPos, con, lin, exp)
 {
-	direction = glm::vec3(xDir, yDir, zDir);
+	direction = glm::normalize(glm::vec3(xDir, yDir, zDir));
 
-	edge = edge;
-	proceEdge = cosf(glm::radians(edge));
+	edge = edg;
+	procEdge = cosf(glm::radians(edge));
 }
 
 void SpotLight::UseLight(GLuint ambientIntensityLocation, GLuint ambientColourLocation, 
 	GLuint diffuseIntensityLocation, GLuint positionLocation, GLuint directionLocation, 
-	GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation,
+	GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation, 
 	GLuint edgeLocation)
 {
 	glUniform3f(ambientColourLocation, colour.x, colour.y, colour.z);
@@ -36,7 +37,13 @@ void SpotLight::UseLight(GLuint ambientIntensityLocation, GLuint ambientColourLo
 	glUniform1f(exponentLocation, exponent);
 
 	glUniform3f(directionLocation, direction.x, direction.y, direction.z);
-	glUniform1f(edgeLocation, proceEdge);
+	glUniform1f(edgeLocation, procEdge);
+}
+
+void SpotLight::SetFlash(glm::vec3 pos, glm::vec3 dir)
+{
+	position = pos;
+	direction = dir;
 }
 
 SpotLight::~SpotLight()

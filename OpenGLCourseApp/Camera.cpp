@@ -1,13 +1,6 @@
-#include "pch.h"
 #include "Camera.h"
 
-
-
-
-
-Camera::Camera()
-{
-}
+Camera::Camera() {}
 
 Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLfloat startPitch, GLfloat startMoveSpeed, GLfloat startTurnSpeed)
 {
@@ -23,28 +16,32 @@ Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLf
 	update();
 }
 
-Camera::~Camera()
-{
-}
-
-void Camera::KeyControl(bool* keys, GLfloat deltaTime)
+void Camera::keyControl(bool* keys, GLfloat deltaTime)
 {
 	GLfloat velocity = moveSpeed * deltaTime;
-	if (keys[GLFW_KEY_W]) {
+
+	if (keys[GLFW_KEY_W])
+	{
 		position += front * velocity;
 	}
-	if (keys[GLFW_KEY_S]) {
+
+	if (keys[GLFW_KEY_S])
+	{
 		position -= front * velocity;
 	}
-	if (keys[GLFW_KEY_A]) {
+
+	if (keys[GLFW_KEY_A])
+	{
 		position -= right * velocity;
 	}
-	if (keys[GLFW_KEY_D]) {
-		position += right* velocity;
+
+	if (keys[GLFW_KEY_D])
+	{
+		position += right * velocity;
 	}
 }
 
-void Camera::MouseControl(GLfloat xChange, GLfloat yChange)
+void Camera::mouseControl(GLfloat xChange, GLfloat yChange)
 {
 	xChange *= turnSpeed;
 	yChange *= turnSpeed;
@@ -52,24 +49,31 @@ void Camera::MouseControl(GLfloat xChange, GLfloat yChange)
 	yaw += xChange;
 	pitch += yChange;
 
-	if (pitch > 89.0f) {
+	if (pitch > 89.0f)
+	{
 		pitch = 89.0f;
 	}
-	if (pitch < -89.0f) {
+
+	if (pitch < -89.0f)
+	{
 		pitch = -89.0f;
 	}
-	
+
 	update();
 }
 
-glm::vec3 Camera::GetCameraPosition()
-{
-	return position ;
-}
-
-glm::mat4 Camera::CalculoateViewMatirx()
+glm::mat4 Camera::calculateViewMatrix()
 {
 	return glm::lookAt(position, position + front, up);
+}
+
+glm::vec3 Camera::getCameraPosition()
+{
+	return position;
+}
+glm::vec3 Camera::getCameraDirection()
+{
+	return glm::normalize(front);
 }
 
 void Camera::update()
@@ -81,4 +85,9 @@ void Camera::update()
 
 	right = glm::normalize(glm::cross(front, worldUp));
 	up = glm::normalize(glm::cross(right, front));
+}
+
+
+Camera::~Camera()
+{
 }
