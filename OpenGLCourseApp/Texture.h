@@ -12,6 +12,7 @@ public:
 
 	bool LoadTexture();
 	bool LoadTextureA();
+
 	void UseTexture();
 	void ClearTexture();
 
