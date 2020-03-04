@@ -60,6 +60,9 @@
     <ClInclude Include="OmniShadowMap.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">
@@ -102,6 +105,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="OmniShadowMap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

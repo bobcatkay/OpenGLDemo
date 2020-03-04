@@ -40,6 +40,8 @@ int Window::Initialise()
 	// Allow forward compatiblity
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
+	glfwWindowHint(GLFW_SAMPLES, 64);
+
 	// Create the window
 	mainWindow = glfwCreateWindow(width, height, "Test Window", NULL, NULL);
 	if (!mainWindow)
@@ -72,6 +74,7 @@ int Window::Initialise()
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 
 	// Create Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);

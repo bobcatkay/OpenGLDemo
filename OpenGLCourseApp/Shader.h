@@ -8,6 +8,7 @@
 #include <GL\glew.h>
 
 #include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
 #include "CommonValues.h"
@@ -48,8 +49,7 @@ public:
 	void SetTexture(GLuint textureUnit);
 	void SetDirectionalShadowMap(GLuint textureUnit);
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
-
-	void SetOmniLightMatrices(std::vector<glm::mat4> lightMatrices);
+	void SetLightMatrices(std::vector<glm::mat4> lightMatrices);
 
 	void UseShader();
 	void ClearShader();
@@ -61,11 +61,11 @@ private:
 	int spotLightCount;
 
 	GLuint shaderID, uniformProjection, uniformModel, uniformView, uniformEyePosition,
-		uniformSpecularIntensity, uniformShininess,
-		uniformTexture,
-		uniformDirectionalLightTransform, uniformDirectionalShadowMap,
+		uniformSpecularIntensity, uniformShininess, 
+		uniformTexture, uniformDirectionalShadowMap, 
+		uniformDirectionalLightTransform,
 		uniformOmniLightPos, uniformFarPlane;
-
+	
 	GLuint uniformLightMatrices[6];
 
 	struct {
@@ -106,8 +106,8 @@ private:
 	} uniformSpotLight[MAX_SPOT_LIGHTS];
 
 	struct {
-		GLuint uniformShadowMap;
-		GLuint uniformFarPlane;
+		GLuint shadowMap;
+		GLuint farPlane;
 	} uniformOmniShadowMap[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
 	void CompileShader(const char* vertexCode, const char* fragmentCode);
