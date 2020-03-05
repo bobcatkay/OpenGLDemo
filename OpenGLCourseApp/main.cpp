@@ -165,7 +165,7 @@ void RenderScene()
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	brickTexture.UseTexture();
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	meshList[0]->RenderMesh();
 
 	model = glm::mat4();
@@ -179,14 +179,14 @@ void RenderScene()
 	model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dirtTexture.UseTexture();
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	meshList[2]->RenderMesh();
 
 	model = glm::mat4();
 	model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 10.0f));
 	model = glm::scale(model, glm::vec3(0.006f, 0.006f, 0.006f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	xwing.RenderModel();
 
 	blackhawkAngle += 0.1f;
@@ -317,9 +317,9 @@ int main()
 	blackhawk.LoadModel("Models/uh60.obj");
 
 	mainLight = DirectionalLight(2048, 2048,
-								1.0f, 0.53f, 0.3f, 
-								0.1f, 0.9f,
-								-10.0f, -12.0f, 18.5f);
+								0.8f, 0.6f, 0.3f, 
+								0.3f, 0.9f,
+								15.0f, -6.0f, -15.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
 								0.01f, 100.0f,
@@ -327,14 +327,14 @@ int main()
 								0.0f, 1.0f,
 								1.0f, 2.0f, 0.0f,
 								0.3f, 0.2f, 0.1f);
-	pointLightCount++;
+	//pointLightCount++;
 	pointLights[1] = PointLight(1024, 1024,
 								0.01f, 100.0f, 
 								0.0f, 1.0f, 0.0f,
 								0.0f, 1.0f,
 								-4.0f, 3.0f, 0.0f,
 								0.3f, 0.2f, 0.1f);
-	pointLightCount++;
+	//pointLightCount++;
 
 	
 	spotLights[0] = SpotLight(1024, 1024,
@@ -345,7 +345,7 @@ int main()
 						0.0f, -1.0f, 0.0f,
 						1.0f, 0.0f, 0.0f,
 						20.0f);
-	spotLightCount++;
+	//spotLightCount++;
 	spotLights[1] = SpotLight(1024, 1024,
 						0.01f, 100.0f, 
 						1.0f, 1.0f, 1.0f,
@@ -354,21 +354,15 @@ int main()
 						-100.0f, -1.0f, 0.0f,
 						1.0f, 0.0f, 0.0f,
 						20.0f);
-	spotLightCount++;
+	//spotLightCount++;
 
 	std::vector<std::string> skyboxFaces;
-	/*skyboxFaces.push_back("Textures/Skybox/cupertin-lake_rt.tga");
-	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_lf.tga");
-	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_up.tga");
-	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_dn.tga");
-	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_bk.tga");
-	skyboxFaces.push_back("Textures/Skybox/cupertin-lake_ft.tga");*/
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/posx.jpg");
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/negx.jpg");
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/posy.jpg");
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/negy.jpg");
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/posz.jpg");
-	skyboxFaces.push_back("Textures/Skybox/Yokohama2/negz.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/px.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nx.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/py.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/ny.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/pz.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nz.jpg");
 
 
 	skybox = Skybox(skyboxFaces);
@@ -411,7 +405,7 @@ int main()
 		mainWindow.swapBuffers();
 		
 		float frameTime = 1.0f/(glfwGetTime() - drawBegin);
-		//std::cout << "FPS:" << frameTime << std::endl;
+		std::cout << "FPS:" << frameTime << std::endl;
 	}
 
 	return 0;
