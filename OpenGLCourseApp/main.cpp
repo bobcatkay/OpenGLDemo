@@ -55,6 +55,8 @@ Material dullMaterial;
 
 Model xwing;
 Model blackhawk;
+Model bowlingPing;
+std::vector<Model> models;
 
 DirectionalLight mainLight;
 PointLight pointLights[MAX_POINT_LIGHTS];
@@ -158,11 +160,11 @@ void CreateShaders()
 	omniShadowShader.CreateFromFiles("Shaders/omni_shadow_map.vert", "Shaders/omni_shadow_map.geom", "Shaders/omni_shadow_map.frag");
 }
 
-void RenderScene()
+void RenderScene(GLfloat deltaTime)
 {
 	glm::mat4 model;
 
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
+	/*model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	brickTexture.UseTexture();
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -187,15 +189,15 @@ void RenderScene()
 	model = glm::scale(model, glm::vec3(0.006f, 0.006f, 0.006f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	xwing.RenderModel();
+	xwing.RenderModel();*/
 
-	blackhawkAngle += 0.1f;
+	blackhawkAngle += 10.0f*deltaTime;
 	if (blackhawkAngle > 360.0f)
 	{
 		blackhawkAngle = 0.1f;
 	}
 
-	model = glm::mat4();
+	/*model = glm::mat4();
 	model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::translate(model, glm::vec3(-8.0f, 2.0f, 0.0f));
 	model = glm::rotate(model, -20.0f * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -203,7 +205,24 @@ void RenderScene()
 	model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	blackhawk.RenderModel();
+	blackhawk.RenderModel();*/
+
+	//model = glm::mat4();
+	//model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
+	////model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	//shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	//donaut.RenderModel();
+
+	for (size_t i = 0; i < models.size(); i++) {
+		model = glm::mat4();
+		model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(i * 2.0f, 10.0f, 0.0f));
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		models[i].RenderModel();
+	}
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -220,7 +239,7 @@ void DirectionalShadowMapPass(DirectionalLight* light)
 
 	directionalShadowShader.Validate();
 
-	RenderScene();
+	RenderScene(deltaTime);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -244,12 +263,12 @@ void OmniShadowMapPass(PointLight* light)
 
 	omniShadowShader.Validate();
 
-	RenderScene();
+	RenderScene(deltaTime);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
+void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaTime)
 {
 	glViewport(0, 0, WindowWidth, WindowHeight);
 
@@ -287,7 +306,7 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 
 	shaderList[0].Validate();
 
-	RenderScene();
+	RenderScene(deltaTime);
 }
 
 int main() 
@@ -315,6 +334,16 @@ int main()
 
 	blackhawk = Model();
 	blackhawk.LoadModel("Models/uh60.obj");
+
+	bowlingPing = Model();
+	bowlingPing.LoadModel("Models/bowling pin.obj");
+
+	for (int i = 0; i < 50; i++) {
+		//Model model = Model();
+		//model.LoadModel("Models/bowling pin.obj");
+		models.push_back(bowlingPing);
+	}
+
 
 	mainLight = DirectionalLight(2048, 2048,
 								0.8f, 0.6f, 0.3f, 
@@ -400,12 +429,18 @@ int main()
 		{
 			OmniShadowMapPass(&spotLights[i]);
 		}
-		RenderPass(camera.calculateViewMatrix(), projection);
+		RenderPass(camera.calculateViewMatrix(), projection,deltaTime);
 
 		mainWindow.swapBuffers();
 		
-		float frameTime = 1.0f/(glfwGetTime() - drawBegin);
-		std::cout << "FPS:" << frameTime << std::endl;
+		float fps = 1.0f/(glfwGetTime() - drawBegin);
+		std::cout << "FPS:" << fps << std::endl;
+		if (fps > 35) {
+			models.push_back(bowlingPing);
+		}
+		else if (fps < 30) {
+			models.pop_back();
+		}
 	}
 
 	return 0;
