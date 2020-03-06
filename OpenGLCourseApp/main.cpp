@@ -46,15 +46,15 @@ Shader omniShadowShader;
 
 Camera camera;
 
-Texture brickTexture;
-Texture dirtTexture;
-Texture plainTexture;
+//Texture brickTexture;
+//Texture dirtTexture;
+//Texture plainTexture;
 
 Material shinyMaterial;
 Material dullMaterial;
 
-Model xwing;
-Model blackhawk;
+//Model xwing;
+//Model blackhawk;
 Model bowlingPing;
 std::vector<Model> models;
 
@@ -319,24 +319,24 @@ int main()
 
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 5.0f, 0.5f);
 
-	brickTexture = Texture("Textures/brick.png");
+	/*brickTexture = Texture("Textures/brick.png");
 	brickTexture.LoadTextureA();
 	dirtTexture = Texture("Textures/dirt.png");
 	dirtTexture.LoadTextureA();
 	plainTexture = Texture("Textures/plain.png");
-	plainTexture.LoadTextureA();
+	plainTexture.LoadTextureA();*/
 
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
-	xwing = Model();
-	xwing.LoadModel("Models/x-wing.obj");
+	//xwing = Model();
+	//xwing.LoadModel("Models/x-wing.obj");
 
-	blackhawk = Model();
-	blackhawk.LoadModel("Models/uh60.obj");
+	//blackhawk = Model();
+	//blackhawk.LoadModel("Models/uh60.obj");
 
 	bowlingPing = Model();
-	bowlingPing.LoadModel("Models/bowling pin.obj");
+	bowlingPing.LoadModel("Models/bowling pin0.blend");
 
 	for (int i = 0; i < 50; i++) {
 		//Model model = Model();
@@ -435,10 +435,10 @@ int main()
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
 		std::cout << "FPS:" << fps << std::endl;
-		if (fps > 35) {
+		if (fps > 60) {
 			models.push_back(bowlingPing);
 		}
-		else if (fps < 30) {
+		else if (fps < 30 && models.size()>10) {
 			models.pop_back();
 		}
 	}
