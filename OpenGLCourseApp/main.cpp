@@ -191,7 +191,7 @@ void RenderScene(GLfloat deltaTime)
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	xwing.RenderModel();*/
 
-	blackhawkAngle += 10.0f*deltaTime;
+	blackhawkAngle += 5.0f*deltaTime;
 	if (blackhawkAngle > 360.0f)
 	{
 		blackhawkAngle = 0.1f;
@@ -207,22 +207,24 @@ void RenderScene(GLfloat deltaTime)
 	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	blackhawk.RenderModel();*/
 
-	//model = glm::mat4();
-	//model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
-	////model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
-	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	//shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	//donaut.RenderModel();
+	model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, blackhawkAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	bowlingPing.RenderModel();
 
-	for (size_t i = 0; i < models.size(); i++) {
-		model = glm::mat4();
-		model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::translate(model, glm::vec3(i * 2.0f, 10.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		models[i].RenderModel();
-	}
+	//for (size_t i = 0; i < models.size(); i++) {
+	//	model = glm::mat4();
+	//	model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+	//	model = glm::translate(model, glm::vec3(i * 2.0f, 10.0f, 0.0f));
+	//	//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
+	//	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	//	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	//	models[i].RenderModel();
+	//}
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -317,7 +319,7 @@ int main()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 5.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 20.0f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 5.0f, 0.5f);
 
 	/*brickTexture = Texture("Textures/brick.png");
 	brickTexture.LoadTextureA();
@@ -336,9 +338,10 @@ int main()
 	//blackhawk.LoadModel("Models/uh60.obj");
 
 	bowlingPing = Model();
-	bowlingPing.LoadModel("Models/bowling pin0.blend");
+	//bowlingPing.LoadModel("Models/bowling pin0.blend");
+	bowlingPing.LoadModel("Models/jupitor.fbx");
 
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 1; i++) {
 		//Model model = Model();
 		//model.LoadModel("Models/bowling pin.obj");
 		models.push_back(bowlingPing);
@@ -386,12 +389,18 @@ int main()
 	//spotLightCount++;
 
 	std::vector<std::string> skyboxFaces;
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/px.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	/*skyboxFaces.push_back("Textures/Skybox/sunrise_2k/px.jpg");
 	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nx.jpg");
 	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/py.jpg");
 	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/ny.jpg");
 	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/pz.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nz.jpg");
+	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nz.jpg");*/
 
 
 	skybox = Skybox(skyboxFaces);
@@ -435,12 +444,12 @@ int main()
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
 		std::cout << "FPS:" << fps << std::endl;
-		if (fps > 60) {
+		/*if (fps > 60) {
 			models.push_back(bowlingPing);
 		}
 		else if (fps < 30 && models.size()>10) {
 			models.pop_back();
-		}
+		}*/
 	}
 
 	return 0;
