@@ -23,6 +23,8 @@ void Camera::keyControl(bool* keys, GLfloat deltaTime)
 	if (keys[GLFW_KEY_W])
 	{
 		position += front * velocity;
+		printf("Camera direction: pitch=%f yaw=%f.\n", pitch, yaw);
+		printf("Camera position:x=%f y=%f z=%f.\n", position.x, position.y, position.z);
 	}
 
 	if (keys[GLFW_KEY_S])
@@ -39,6 +41,8 @@ void Camera::keyControl(bool* keys, GLfloat deltaTime)
 	{
 		position += right * velocity;
 	}
+
+	
 }
 
 void Camera::mouseControl(GLfloat xChange, GLfloat yChange)
@@ -58,7 +62,7 @@ void Camera::mouseControl(GLfloat xChange, GLfloat yChange)
 	{
 		pitch = -89.0f;
 	}
-
+	
 	update();
 }
 

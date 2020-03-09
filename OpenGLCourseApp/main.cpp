@@ -1,4 +1,4 @@
-#define STB_IMAGE_IMPLEMENTATION
+﻿#define STB_IMAGE_IMPLEMENTATION
 
 #include <stdio.h>
 #include <string.h>
@@ -55,7 +55,8 @@ Material dullMaterial;
 
 //Model xwing;
 //Model blackhawk;
-Model bowlingPing;
+Model jupitor;
+Model rock;
 std::vector<Model> models;
 
 DirectionalLight mainLight;
@@ -70,7 +71,8 @@ unsigned int spotLightCount = 0;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
-GLfloat blackhawkAngle = 0.0f;
+GLfloat rotateAngle = 0.0f;
+GLfloat rockRotateAngle = 0.0f;
 
 // Vertex Shader
 static const char* vShader = "Shaders/shader.vert";
@@ -191,10 +193,16 @@ void RenderScene(GLfloat deltaTime)
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	xwing.RenderModel();*/
 
-	blackhawkAngle += 5.0f*deltaTime;
-	if (blackhawkAngle > 360.0f)
+	rotateAngle += 0.5f*deltaTime;
+	if (rotateAngle > 360.0f)
 	{
-		blackhawkAngle = 0.1f;
+		rotateAngle = 0.0f;
+	}
+
+	rockRotateAngle += 1.0f * deltaTime;
+	if (rotateAngle > 360.0f)
+	{
+		rotateAngle = 0.0f;
 	}
 
 	/*model = glm::mat4();
@@ -207,24 +215,26 @@ void RenderScene(GLfloat deltaTime)
 	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	blackhawk.RenderModel();*/
 
+	
+
+	for (size_t i = 0; i < models.size(); i++) {
+		model = glm::mat4();
+		model = glm::rotate(model, rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, models[i].initPosition);
+		//model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		models[i].RenderModel();
+	}
+
 	model = glm::mat4();
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, blackhawkAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
+	model = glm::rotate(model, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+	//model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	bowlingPing.RenderModel();
-
-	//for (size_t i = 0; i < models.size(); i++) {
-	//	model = glm::mat4();
-	//	model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-	//	model = glm::translate(model, glm::vec3(i * 2.0f, 10.0f, 0.0f));
-	//	//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
-	//	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	//	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	//	models[i].RenderModel();
-	//}
+	jupitor.RenderModel();
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -277,7 +287,7 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	skybox.DrawSkybox(viewMatrix, projectionMatrix);
+	//skybox.DrawSkybox(viewMatrix, projectionMatrix);
 
 	shaderList[0].UseShader();
 
@@ -319,7 +329,8 @@ int main()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 20.0f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 5.0f, 0.5f);
+	//camera = Camera(glm::vec3(900*1000.0f, 50.0f, 8800*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -25.0f, 500.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 0.0f, 210*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, 1.5f, 5000.0f, 0.5f);
 
 	/*brickTexture = Texture("Textures/brick.png");
 	brickTexture.LoadTextureA();
@@ -331,27 +342,47 @@ int main()
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
-	//xwing = Model();
-	//xwing.LoadModel("Models/x-wing.obj");
+	
+	//model = glm::rotate(model, -rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));//722,500‬+75,690,000‬=76,412,500‬ /8741
+	//model = glm::translate(model, glm::vec3(850.0f + i * 100, 4558.0f, 8700.0f));
+	rock = Model();
+	rock.LoadModel("Models/rock.fbx");
+	int radius = 200*1000;
+	for (int i = 0; i < 2; i++) {
+		int xDirection = i == 0 ? -1 : 1;
+		int x = radius*xDirection;
+		for (;;) {
+			Model m = Model();
+			m = rock;
+			x += 200;
+			if (xDirection==-1 && x > 0) {
+				break;
+			}
+			if (xDirection == 1 && x > radius) {
+				break;
+			}
+			
+			int z = sqrt(radius * radius - x * x);
+			m.initPosition = glm::vec3(x, 0.0f, z);
+			models.push_back(m);
 
-	//blackhawk = Model();
-	//blackhawk.LoadModel("Models/uh60.obj");
+			Model m2 = Model();
+			m2 = rock;
+			m2.initPosition = -1.0f * glm::vec3(x, 0.0f, z);
+			models.push_back(m2);
 
-	bowlingPing = Model();
-	//bowlingPing.LoadModel("Models/bowling pin0.blend");
-	bowlingPing.LoadModel("Models/jupitor.fbx");
-
-	for (int i = 0; i < 1; i++) {
-		//Model model = Model();
-		//model.LoadModel("Models/bowling pin.obj");
-		models.push_back(bowlingPing);
+		}
 	}
+	//std::cout << "Rocks count:" << models.size() << std::endl;
+
+	jupitor = Model();
+	jupitor.LoadModel("Models/jupitor.fbx");
 
 
 	mainLight = DirectionalLight(2048, 2048,
-								0.8f, 0.6f, 0.3f, 
+								0.9f, 0.8f, 0.8f, 
 								0.3f, 0.9f,
-								15.0f, -6.0f, -15.0f);
+								20.0f, -50.0f, -50.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
 								0.01f, 100.0f,
@@ -407,7 +438,7 @@ int main()
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
-	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 1000000.0f);
 
 	// Loop until window closed
 	GLfloat drawBegin;
@@ -443,7 +474,7 @@ int main()
 		mainWindow.swapBuffers();
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
-		std::cout << "FPS:" << fps << std::endl;
+		//std::cout << "FPS:" << fps << std::endl;
 		/*if (fps > 60) {
 			models.push_back(bowlingPing);
 		}

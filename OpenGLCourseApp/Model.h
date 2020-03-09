@@ -6,6 +6,7 @@
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
+#include <glm\glm.hpp>
 
 #include "Mesh.h"
 #include "Texture.h"
@@ -18,6 +19,7 @@ public:
 	void LoadModel(const std::string& fileName);
 	void RenderModel();
 	void ClearModel();
+	glm::vec3 initPosition;
 
 	~Model();
 
