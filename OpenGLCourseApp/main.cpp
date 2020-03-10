@@ -4,6 +4,7 @@
 #include <string.h>
 #include <cmath>
 #include <vector>
+#include <ctime>
 
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
@@ -57,7 +58,7 @@ Material dullMaterial;
 //Model blackhawk;
 Model jupitor;
 Model rock;
-std::vector<Model> models;
+std::vector<Model> ringModels;
 
 DirectionalLight mainLight;
 PointLight pointLights[MAX_POINT_LIGHTS];
@@ -108,50 +109,6 @@ void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloa
 	}
 }
 
-void CreateObjects() 
-{
-	unsigned int indices[] = {		
-		0, 3, 1,
-		1, 3, 2,
-		2, 3, 0,
-		0, 1, 2
-	};
-
-	GLfloat vertices[] = {
-	//	x      y      z			u	  v			nx	  ny    nz
-		-1.0f, -1.0f, -0.6f,		0.0f, 0.0f,		0.0f, 0.0f, 0.0f,
-		0.0f, -1.0f, 1.0f,		0.5f, 0.0f,		0.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, -0.6f,		1.0f, 0.0f,		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,		0.5f, 1.0f,		0.0f, 0.0f, 0.0f
-	};
-
-	unsigned int floorIndices[] = {
-		0, 2, 1,
-		1, 2, 3
-	};
-
-	GLfloat floorVertices[] = {
-		-10.0f, 0.0f, -10.0f,	0.0f, 0.0f,		0.0f, -1.0f, 0.0f,
-		10.0f, 0.0f, -10.0f,	10.0f, 0.0f,	0.0f, -1.0f, 0.0f,
-		-10.0f, 0.0f, 10.0f,	0.0f, 10.0f,	0.0f, -1.0f, 0.0f,
-		10.0f, 0.0f, 10.0f,		10.0f, 10.0f,	0.0f, -1.0f, 0.0f
-	};
-
-	calcAverageNormals(indices, 12, vertices, 32, 8, 5);
-
-	Mesh *obj1 = new Mesh();
-	obj1->CreateMesh(vertices, indices, 32, 12);
-	meshList.push_back(obj1);
-
-	Mesh *obj2 = new Mesh();
-	obj2->CreateMesh(vertices, indices, 32, 12);
-	meshList.push_back(obj2);
-
-	Mesh *obj3 = new Mesh();
-	obj3->CreateMesh(floorVertices, floorIndices, 32, 6);
-	meshList.push_back(obj3);
-}
-
 void CreateShaders()
 {
 	Shader *shader1 = new Shader();
@@ -166,72 +123,33 @@ void RenderScene(GLfloat deltaTime)
 {
 	glm::mat4 model;
 
-	/*model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	brickTexture.UseTexture();
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	meshList[0]->RenderMesh();
-
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, 4.0f, -2.5f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	dirtTexture.UseTexture();
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	meshList[1]->RenderMesh();
-
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	dirtTexture.UseTexture();
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	meshList[2]->RenderMesh();
-
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 10.0f));
-	model = glm::scale(model, glm::vec3(0.006f, 0.006f, 0.006f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	xwing.RenderModel();*/
-
-	rotateAngle += 0.5f*deltaTime;
+	rotateAngle += 0.1f*deltaTime;
 	if (rotateAngle > 360.0f)
 	{
-		rotateAngle = 0.0f;
+		rotateAngle = 0.1f;
 	}
 
-	rockRotateAngle += 1.0f * deltaTime;
-	if (rotateAngle > 360.0f)
+	rockRotateAngle += 0.5f * deltaTime;
+	if (rockRotateAngle > 360.0f)
 	{
-		rotateAngle = 0.0f;
+		rockRotateAngle = 0.1f;
 	}
 
-	/*model = glm::mat4();
-	model = glm::rotate(model, -blackhawkAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(-8.0f, 2.0f, 0.0f));
-	model = glm::rotate(model, -20.0f * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(0.4f, 0.4f, 0.4f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	blackhawk.RenderModel();*/
-
-	
-
-	for (size_t i = 0; i < models.size(); i++) {
+	for (size_t i = 0; i < ringModels.size(); i++) {
 		model = glm::mat4();
 		model = glm::rotate(model, rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::translate(model, models[i].initPosition);
-		//model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+		model = glm::translate(model, ringModels[i].initPosition);
+		model = glm::scale(model, ringModels[i].initScale);
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		models[i].RenderModel();
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		ringModels[i].RenderModel();
 	}
 
 	model = glm::mat4();
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	//model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	jupitor.RenderModel();
@@ -287,7 +205,7 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//skybox.DrawSkybox(viewMatrix, projectionMatrix);
+	skybox.DrawSkybox(viewMatrix, projectionMatrix);
 
 	shaderList[0].UseShader();
 
@@ -326,18 +244,10 @@ int main()
 	mainWindow = Window(WindowWidth, WindowHeight); // 1280, 1024 or 1024, WindowHeight
 	mainWindow.Initialise();
 
-	CreateObjects();
 	CreateShaders();
 
 	//camera = Camera(glm::vec3(900*1000.0f, 50.0f, 8800*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -25.0f, 500.0f, 0.5f);
-	camera = Camera(glm::vec3(0.0f, 0.0f, 210*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, 1.5f, 5000.0f, 0.5f);
-
-	/*brickTexture = Texture("Textures/brick.png");
-	brickTexture.LoadTextureA();
-	dirtTexture = Texture("Textures/dirt.png");
-	dirtTexture.LoadTextureA();
-	plainTexture = Texture("Textures/plain.png");
-	plainTexture.LoadTextureA();*/
+	camera = Camera(glm::vec3(0.0f, 15000.0f, 200*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -3.5f, 5000.0f, 0.5f);
 
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
@@ -347,42 +257,54 @@ int main()
 	//model = glm::translate(model, glm::vec3(850.0f + i * 100, 4558.0f, 8700.0f));
 	rock = Model();
 	rock.LoadModel("Models/rock.fbx");
-	int radius = 200*1000;
+	float radius = 130*1000;
+	//srand(time(0));
 	for (int i = 0; i < 2; i++) {
 		int xDirection = i == 0 ? -1 : 1;
-		int x = radius*xDirection;
+		float x = xDirection == -1 ? radius * xDirection : 0;
 		for (;;) {
 			Model m = Model();
 			m = rock;
-			x += 200;
-			if (xDirection==-1 && x > 0) {
+			x += 300;
+			if (xDirection < 0 && x > 0) {
 				break;
 			}
-			if (xDirection == 1 && x > radius) {
+			if (xDirection > 0 && x > radius) {
 				break;
 			}
-			
-			int z = sqrt(radius * radius - x * x);
+			float z = sqrtf(radius * radius - x * x);
 			m.initPosition = glm::vec3(x, 0.0f, z);
-			models.push_back(m);
+			float scalex = ((rand() % (300 - 100)) + 100) / 100.0f;
+			float scaley = ((rand() % (300 - 100)) + 100) / 100.0f;
+			float scalez = ((rand() % (300 - 100)) + 100) / 100.0f;
+			m.initScale = glm::vec3(scalex, scaley, scalez);
+			
+			ringModels.push_back(m);
 
 			Model m2 = Model();
 			m2 = rock;
 			m2.initPosition = -1.0f * glm::vec3(x, 0.0f, z);
-			models.push_back(m2);
-
+			scalex = ((rand() % (300 - 100)) + 100) / 100.0f;
+			scaley = ((rand() % (300 - 100)) + 100) / 100.0f;
+			scalez = ((rand() % (300 - 100)) + 100) / 100.0f;
+			m2.initScale = glm::vec3(scalex, scaley, scalez);
+			
+			ringModels.push_back(m2);
 		}
 	}
+
+
+
 	//std::cout << "Rocks count:" << models.size() << std::endl;
 
 	jupitor = Model();
 	jupitor.LoadModel("Models/jupitor.fbx");
 
 
-	mainLight = DirectionalLight(2048, 2048,
-								0.9f, 0.8f, 0.8f, 
-								0.3f, 0.9f,
-								20.0f, -50.0f, -50.0f);
+	mainLight = DirectionalLight(1024, 1024,
+								1.0f, 0.9f, 0.9f, 
+								0.00f, 0.9f,
+								30.0f, -10.0f, -50.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
 								0.01f, 100.0f,
@@ -438,10 +360,11 @@ int main()
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
-	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 1000000.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
 
 	// Loop until window closed
 	GLfloat drawBegin;
+	GLfloat lastUpdateFPS = 0;
 	while (!mainWindow.getShouldClose())
 	{
 		drawBegin = glfwGetTime(); // SDL_GetPerformanceCounter();
@@ -452,7 +375,7 @@ int main()
 		glfwPollEvents();
 
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		//camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
 		if (mainWindow.getsKeys()[GLFW_KEY_L])
 		{
@@ -474,7 +397,10 @@ int main()
 		mainWindow.swapBuffers();
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
-		//std::cout << "FPS:" << fps << std::endl;
+		if (glfwGetTime() - lastUpdateFPS > 0.2) {
+			//std::cout << "FPS:" << fps << std::endl;
+			lastUpdateFPS = glfwGetTime();
+		}
 		/*if (fps > 60) {
 			models.push_back(bowlingPing);
 		}

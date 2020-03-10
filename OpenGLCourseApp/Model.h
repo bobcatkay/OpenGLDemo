@@ -20,6 +20,7 @@ public:
 	void RenderModel();
 	void ClearModel();
 	glm::vec3 initPosition;
+	glm::vec3 initScale;
 
 	~Model();
 
