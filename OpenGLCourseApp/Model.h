@@ -26,6 +26,8 @@ public:
 	glm::mat4* modelMatrices;
 	GLuint instanceAmount;
 
+	std::vector<Mesh*> meshList;
+	std::vector<Texture*> textureList;
 	~Model();
 
 private:
@@ -35,7 +37,5 @@ private:
 	void LoadMaterials(const aiScene *scene);
 
 	std::vector<unsigned int> meshToTex;
-	std::vector<Texture*> textureList;
-	std::vector<Mesh*> meshList;
 };
 

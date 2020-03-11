@@ -15,11 +15,11 @@ public:
 	void RenderInstance();
 	void ClearMesh();
 
+	GLuint VBO, IBO, VAO, VBO2;
+	GLsizei indexCount;
 	~Mesh();
 
 private:
-	GLsizei indexCount;
-	GLuint VBO, IBO, VAO;
 	glm::mat4* modelMatrices;
 	GLuint instanceAmount;
 };

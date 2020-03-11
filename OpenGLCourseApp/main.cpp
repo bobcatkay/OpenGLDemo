@@ -70,6 +70,9 @@ GLfloat lastTime = 0.0f;
 GLfloat rotateAngle = 0.0f;
 GLfloat rockRotateAngle = 0.0f;
 
+GLuint rockAmount = 3000;
+glm::mat4* modelMatrices;
+
 // Vertex Shader
 static const char* vShader = "Shaders/shader.vert";
 
@@ -124,21 +127,11 @@ void RenderScene(GLfloat deltaTime)
 		rotateAngle = 0.1f;
 	}
 
-	rockRotateAngle += 0.5f * deltaTime;
+	rockRotateAngle += 10.5f * deltaTime;
 	if (rockRotateAngle > 360.0f)
 	{
 		rockRotateAngle = 0.1f;
 	}
-
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
-	glUniform1i(uniformIntanceMode, 0);
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	jupitor.RenderModel();
 
 	/*for (size_t i = 0; i < ringModels.size(); i++) {
 		model = glm::mat4();
@@ -149,13 +142,28 @@ void RenderScene(GLfloat deltaTime)
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		ringModels[i].RenderModel();
 	}*/
-	//instanceShader.UseShader();
-	//shaderList[0].UseShader();
-	glUniform1i(uniformIntanceMode, 1);
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	rock.RenderInstance();
 
-	
+	//shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	//glUniform1i(uniformIntanceMode, 0);
+	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMatrices[0]));
+	//rock.RenderInstance();
+	/*glUniform1i(uniformIntanceMode, 0);
+	for (int i = 0; i < rockAmount; i++) {
+		glm::mat4 model = modelMatrices[i];
+		model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		rock.RenderModel();
+	}*/
+
+	model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+	glUniform1i(uniformIntanceMode, 0);
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	jupitor.RenderModel();
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -245,14 +253,14 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 
 glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
 	
-	glm::mat4* modelMatrices;
+	
 	modelMatrices = new glm::mat4[amount];
 	srand(glfwGetTime()); // initialize random seed
-	GLfloat radius = 150*1000.0f;
-	GLfloat offset = 1.0f;
+	GLfloat radius = 130*1000.0f;
+	GLfloat offset = 10000.0f;
 	for (GLuint i = 0; i < amount; i++)
 	{
-		glm::mat4 model;
+		glm::mat4 model=glm::mat4(1.0f);
 		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
 		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
@@ -289,11 +297,11 @@ int main()
 	dullMaterial = Material(0.3f, 4);
 
 	
-	GLuint rockAmount = 1000;
+	
 	glm::mat4* matrices = GenerateRocksModelMatrices(rockAmount);
 	rock = Model();
 	rock.LoadModelInstance("Models/rock.fbx", matrices, rockAmount);
-
+	//rock.LoadModel("Models/rock.fbx");
 
 	//std::cout << "Rocks count:" << models.size() << std::endl;
 
@@ -390,6 +398,7 @@ int main()
 		}
 
 		RenderPass(camera.calculateViewMatrix(), projection,deltaTime);
+
 
 		mainWindow.swapBuffers();
 		
