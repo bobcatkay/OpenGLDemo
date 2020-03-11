@@ -17,10 +17,14 @@ public:
 	Model();
 
 	void LoadModel(const std::string& fileName);
+	void LoadModelInstance(const std::string& fileName, glm::mat4* modelMatrices, GLuint amount);
 	void RenderModel();
 	void ClearModel();
+	void Model::RenderInstance();
 	glm::vec3 initPosition;
 	glm::vec3 initScale;
+	glm::mat4* modelMatrices;
+	GLuint instanceAmount;
 
 	~Model();
 
@@ -30,8 +34,8 @@ private:
 	void LoadMesh(aiMesh *mesh, const aiScene *scene);
 	void LoadMaterials(const aiScene *scene);
 
-	std::vector<Mesh*> meshList;
-	std::vector<Texture*> textureList;
 	std::vector<unsigned int> meshToTex;
+	std::vector<Texture*> textureList;
+	std::vector<Mesh*> meshList;
 };
 

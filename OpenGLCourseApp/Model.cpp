@@ -4,6 +4,7 @@ Model::Model()
 {
 	initPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 	initScale = glm::vec3(1.0f, 1.0f, 1.0f);
+	instanceAmount = 0;
 }
 
 void Model::RenderModel()
@@ -21,6 +22,20 @@ void Model::RenderModel()
 	}
 }
 
+void Model::RenderInstance() {
+	for (size_t i = 0; i < meshList.size(); i++)
+	{
+		unsigned int materialIndex = meshToTex[i];
+
+		if (materialIndex < textureList.size() && textureList[materialIndex])
+		{
+			textureList[materialIndex]->UseTexture();
+		}
+
+		meshList[i]->RenderInstance();
+	}
+}
+
 void Model::LoadModel(const std::string & fileName)
 {
 	Assimp::Importer importer;
@@ -35,6 +50,13 @@ void Model::LoadModel(const std::string & fileName)
 	LoadNode(scene->mRootNode, scene);
 
 	LoadMaterials(scene);
+}
+
+void Model::LoadModelInstance(const std::string& fileName, glm::mat4* modelMatrices, GLuint amount)
+{
+	this->modelMatrices = modelMatrices;
+	instanceAmount = amount;
+	LoadModel(fileName);
 }
 
 void Model::LoadNode(aiNode * node, const aiScene * scene)
@@ -78,7 +100,13 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 	}
 
 	Mesh* newMesh = new Mesh();
-	newMesh->CreateMesh(&vertices[0], &indices[0], vertices.size(), indices.size());
+	if (instanceAmount > 0) {
+		newMesh->CreateMeshInstance(&vertices[0], &indices[0], vertices.size(), indices.size(),modelMatrices, instanceAmount);
+	}
+	else {
+		newMesh->CreateMesh(&vertices[0], &indices[0], vertices.size(), indices.size());
+	}
+	
 	meshList.push_back(newMesh);
 	meshToTex.push_back(mesh->mMaterialIndex);
 }
@@ -142,7 +170,6 @@ void Model::ClearModel()
 		}
 	}
 }
-
 Model::~Model()
 {
 }

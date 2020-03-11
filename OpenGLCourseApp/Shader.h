@@ -42,6 +42,7 @@ public:
 	GLuint GetEyePositionLocation();
 	GLuint GetOmniLightPosLocation();
 	GLuint GetFarPlaneLocation();
+	GLuint GetUniformInstanceMode();
 
 	void SetDirectionalLight(DirectionalLight * dLight);
 	void SetPointLights(PointLight * pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
@@ -64,7 +65,7 @@ private:
 		uniformSpecularIntensity, uniformShininess, 
 		uniformTexture, uniformDirectionalShadowMap, 
 		uniformDirectionalLightTransform,
-		uniformOmniLightPos, uniformFarPlane;
+		uniformOmniLightPos, uniformFarPlane, uniformIntanceMode;
 	
 	GLuint uniformLightMatrices[6];
 

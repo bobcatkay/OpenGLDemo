@@ -36,7 +36,7 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 uniformSpecularIntensity = 0, uniformShininess = 0,
-uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0;
+uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0, uniformIntanceMode;
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -44,18 +44,13 @@ std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 Shader directionalShadowShader;
 Shader omniShadowShader;
+//Shader instanceShader;
 
 Camera camera;
-
-//Texture brickTexture;
-//Texture dirtTexture;
-//Texture plainTexture;
 
 Material shinyMaterial;
 Material dullMaterial;
 
-//Model xwing;
-//Model blackhawk;
 Model jupitor;
 Model rock;
 std::vector<Model> ringModels;
@@ -135,7 +130,17 @@ void RenderScene(GLfloat deltaTime)
 		rockRotateAngle = 0.1f;
 	}
 
-	for (size_t i = 0; i < ringModels.size(); i++) {
+	model = glm::mat4();
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+	glUniform1i(uniformIntanceMode, 0);
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	jupitor.RenderModel();
+
+	/*for (size_t i = 0; i < ringModels.size(); i++) {
 		model = glm::mat4();
 		model = glm::rotate(model, rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::translate(model, ringModels[i].initPosition);
@@ -143,16 +148,14 @@ void RenderScene(GLfloat deltaTime)
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		ringModels[i].RenderModel();
-	}
+	}*/
+	//instanceShader.UseShader();
+	//shaderList[0].UseShader();
+	glUniform1i(uniformIntanceMode, 1);
+	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	rock.RenderInstance();
 
-	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-	jupitor.RenderModel();
+	
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -209,6 +212,7 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 
 	shaderList[0].UseShader();
 
+	uniformIntanceMode = shaderList[0].GetUniformInstanceMode();
 	uniformModel = shaderList[0].GetModelLocation();
 	uniformProjection = shaderList[0].GetProjectionLocation();
 	uniformView = shaderList[0].GetViewLocation();
@@ -239,6 +243,38 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	RenderScene(deltaTime);
 }
 
+glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
+	
+	glm::mat4* modelMatrices;
+	modelMatrices = new glm::mat4[amount];
+	srand(glfwGetTime()); // initialize random seed
+	GLfloat radius = 150*1000.0f;
+	GLfloat offset = 1.0f;
+	for (GLuint i = 0; i < amount; i++)
+	{
+		glm::mat4 model;
+		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
+		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
+		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		GLfloat x = sin(angle) * radius + displacement;
+		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		GLfloat y = displacement * 0.4f; // y value has smaller displacement
+		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		GLfloat z = cos(angle) * radius + displacement;
+		model = glm::translate(model, glm::vec3(x, y, z));
+		// 2. Scale: Scale between 0.05 and 0.25f
+		GLfloat scale = (rand() % 20) / 10.0f + 0.5;
+		model = glm::scale(model, glm::vec3(scale));
+		// 3. Rotation: add random rotation around a (semi)randomly picked rotation axis vector
+		GLfloat rotAngle = (rand() % 360);
+		model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+		// 4. Now add to list of matrices
+		modelMatrices[i] = model;
+	}
+
+	return modelMatrices;
+}
+
 int main() 
 {
 	mainWindow = Window(WindowWidth, WindowHeight); // 1280, 1024 or 1024, WindowHeight
@@ -253,46 +289,10 @@ int main()
 	dullMaterial = Material(0.3f, 4);
 
 	
-	//model = glm::rotate(model, -rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));//722,500‬+75,690,000‬=76,412,500‬ /8741
-	//model = glm::translate(model, glm::vec3(850.0f + i * 100, 4558.0f, 8700.0f));
+	GLuint rockAmount = 1000;
+	glm::mat4* matrices = GenerateRocksModelMatrices(rockAmount);
 	rock = Model();
-	rock.LoadModel("Models/rock.fbx");
-	float radius = 130*1000;
-	//srand(time(0));
-	for (int i = 0; i < 2; i++) {
-		int xDirection = i == 0 ? -1 : 1;
-		float x = xDirection == -1 ? radius * xDirection : 0;
-		for (;;) {
-			Model m = Model();
-			m = rock;
-			x += 300;
-			if (xDirection < 0 && x > 0) {
-				break;
-			}
-			if (xDirection > 0 && x > radius) {
-				break;
-			}
-			float z = sqrtf(radius * radius - x * x);
-			m.initPosition = glm::vec3(x, 0.0f, z);
-			float scalex = ((rand() % (300 - 100)) + 100) / 100.0f;
-			float scaley = ((rand() % (300 - 100)) + 100) / 100.0f;
-			float scalez = ((rand() % (300 - 100)) + 100) / 100.0f;
-			m.initScale = glm::vec3(scalex, scaley, scalez);
-			
-			ringModels.push_back(m);
-
-			Model m2 = Model();
-			m2 = rock;
-			m2.initPosition = -1.0f * glm::vec3(x, 0.0f, z);
-			scalex = ((rand() % (300 - 100)) + 100) / 100.0f;
-			scaley = ((rand() % (300 - 100)) + 100) / 100.0f;
-			scalez = ((rand() % (300 - 100)) + 100) / 100.0f;
-			m2.initScale = glm::vec3(scalex, scaley, scalez);
-			
-			ringModels.push_back(m2);
-		}
-	}
-
+	rock.LoadModelInstance("Models/rock.fbx", matrices, rockAmount);
 
 
 	//std::cout << "Rocks count:" << models.size() << std::endl;
@@ -301,45 +301,48 @@ int main()
 	jupitor.LoadModel("Models/jupitor.fbx");
 
 
+
 	mainLight = DirectionalLight(1024, 1024,
 								1.0f, 0.9f, 0.9f, 
 								0.00f, 0.9f,
 								30.0f, -10.0f, -50.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
-								0.01f, 100.0f,
-								0.0f, 0.0f, 1.0f,
-								0.0f, 1.0f,
-								1.0f, 2.0f, 0.0f,
-								0.3f, 0.2f, 0.1f);
+		0.01f, 100.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 2.0f, 0.0f,
+		0.3f, 0.2f, 0.1f);
 	//pointLightCount++;
 	pointLights[1] = PointLight(1024, 1024,
-								0.01f, 100.0f, 
-								0.0f, 1.0f, 0.0f,
-								0.0f, 1.0f,
-								-4.0f, 3.0f, 0.0f,
-								0.3f, 0.2f, 0.1f);
+		0.01f, 100.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f,
+		-4.0f, 3.0f, 0.0f,
+		0.3f, 0.2f, 0.1f);
 	//pointLightCount++;
 
-	
+
 	spotLights[0] = SpotLight(1024, 1024,
-						0.01f, 100.0f, 
-						1.0f, 1.0f, 1.0f,
-						0.0f, 2.0f,
-						0.0f, 0.0f, 0.0f,
-						0.0f, -1.0f, 0.0f,
-						1.0f, 0.0f, 0.0f,
-						20.0f);
+		0.01f, 100.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 2.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		20.0f);
 	//spotLightCount++;
 	spotLights[1] = SpotLight(1024, 1024,
-						0.01f, 100.0f, 
-						1.0f, 1.0f, 1.0f,
-						0.0f, 1.0f,
-						0.0f, -1.5f, 0.0f,
-						-100.0f, -1.0f, 0.0f,
-						1.0f, 0.0f, 0.0f,
-						20.0f);
+		0.01f, 100.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, -1.5f, 0.0f,
+		-100.0f, -1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		20.0f);
 	//spotLightCount++;
+
+
 
 	std::vector<std::string> skyboxFaces;
 	skyboxFaces.push_back("Textures/Skybox/space.jpg");
@@ -348,13 +351,6 @@ int main()
 	skyboxFaces.push_back("Textures/Skybox/space.jpg");
 	skyboxFaces.push_back("Textures/Skybox/space.jpg");
 	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	/*skyboxFaces.push_back("Textures/Skybox/sunrise_2k/px.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nx.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/py.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/ny.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/pz.jpg");
-	skyboxFaces.push_back("Textures/Skybox/sunrise_2k/nz.jpg");*/
-
 
 	skybox = Skybox(skyboxFaces);
 
@@ -375,7 +371,7 @@ int main()
 		glfwPollEvents();
 
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		//camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
 		if (mainWindow.getsKeys()[GLFW_KEY_L])
 		{
@@ -392,6 +388,7 @@ int main()
 		{
 			OmniShadowMapPass(&spotLights[i]);
 		}
+
 		RenderPass(camera.calculateViewMatrix(), projection,deltaTime);
 
 		mainWindow.swapBuffers();
@@ -408,6 +405,8 @@ int main()
 			models.pop_back();
 		}*/
 	}
+
+	delete[] matrices;
 
 	return 0;
 }
