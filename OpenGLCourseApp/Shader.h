@@ -42,7 +42,6 @@ public:
 	GLuint GetEyePositionLocation();
 	GLuint GetOmniLightPosLocation();
 	GLuint GetFarPlaneLocation();
-	GLuint GetUniformInstanceMode();
 
 	void SetDirectionalLight(DirectionalLight * dLight);
 	void SetPointLights(PointLight * pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
@@ -55,6 +54,10 @@ public:
 	void UseShader();
 	void ClearShader();
 
+	void SetMat4(const std::string& name, const glm::mat4& mat);
+
+	void SetInt(const std::string& name, int value);
+
 	~Shader();
 
 private:
@@ -65,7 +68,7 @@ private:
 		uniformSpecularIntensity, uniformShininess, 
 		uniformTexture, uniformDirectionalShadowMap, 
 		uniformDirectionalLightTransform,
-		uniformOmniLightPos, uniformFarPlane, uniformIntanceMode;
+		uniformOmniLightPos, uniformFarPlane;
 	
 	GLuint uniformLightMatrices[6];
 

@@ -11,7 +11,6 @@ out vec3 Normal;
 out vec3 FragPos;
 out vec4 DirectionalLightSpacePos;
 
-uniform int instanceMode;
 uniform mat4 model;
 uniform mat4 projection;
 uniform mat4 view;
@@ -19,19 +18,14 @@ uniform mat4 directionalLightTransform;
 
 void main()
 {
-	mat4 model0 = model;
-	if(instanceMode > 0){
-		model0 = instanceMatrix;
-	}
-
-	gl_Position = projection * view * model0 * vec4(pos, 1.0);
-	DirectionalLightSpacePos = directionalLightTransform * model0 * vec4(pos, 1.0);
+	gl_Position = projection * view * model * vec4(pos, 1.0);
+	DirectionalLightSpacePos = directionalLightTransform * model * vec4(pos, 1.0);
 	
 	vCol = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);
 	
 	TexCoords = tex;
 	
-	Normal = mat3(transpose(inverse(model0))) * norm;
+	Normal = mat3(transpose(inverse(model))) * norm;
 	
-	FragPos = (model0 * vec4(pos, 1.0)).xyz; 
+	FragPos = (model * vec4(pos, 1.0)).xyz; 
 }

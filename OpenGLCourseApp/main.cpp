@@ -36,7 +36,7 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 uniformSpecularIntensity = 0, uniformShininess = 0,
-uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0, uniformIntanceMode;
+uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0;
 
 Window mainWindow;
 std::vector<Mesh*> meshList;
@@ -70,7 +70,7 @@ GLfloat lastTime = 0.0f;
 GLfloat rotateAngle = 0.0f;
 GLfloat rockRotateAngle = 0.0f;
 
-GLuint rockAmount = 3000;
+GLuint rockAmount = 1500;
 glm::mat4* modelMatrices;
 
 // Vertex Shader
@@ -143,27 +143,27 @@ void RenderScene(GLfloat deltaTime)
 		ringModels[i].RenderModel();
 	}*/
 
-	//shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+
 	//glUniform1i(uniformIntanceMode, 0);
-	//glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(modelMatrices[0]));
-	//rock.RenderInstance();
-	/*glUniform1i(uniformIntanceMode, 0);
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	for (int i = 0; i < rockAmount; i++) {
 		glm::mat4 model = modelMatrices[i];
 		model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		rock.RenderModel();
-	}*/
+	}
 
+	
 	model = glm::mat4();
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
-	glUniform1i(uniformIntanceMode, 0);
+	//glUniform1i(uniformIntanceMode, 0);
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	jupitor.RenderModel();
+
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -220,7 +220,6 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 
 	shaderList[0].UseShader();
 
-	uniformIntanceMode = shaderList[0].GetUniformInstanceMode();
 	uniformModel = shaderList[0].GetModelLocation();
 	uniformProjection = shaderList[0].GetProjectionLocation();
 	uniformView = shaderList[0].GetViewLocation();
@@ -251,31 +250,35 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	RenderScene(deltaTime);
 }
 
-glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
+glm::mat4* GenerateRocksModelMatrices( ) {
 	
 	
-	modelMatrices = new glm::mat4[amount];
+	modelMatrices = new glm::mat4[rockAmount];
+	GLfloat radius = 180*1000.0f;
+	GLfloat offset = 15000.0f;
 	srand(glfwGetTime()); // initialize random seed
-	GLfloat radius = 130*1000.0f;
-	GLfloat offset = 10000.0f;
-	for (GLuint i = 0; i < amount; i++)
+	for (GLuint i = 0; i < rockAmount; i++)
 	{
 		glm::mat4 model=glm::mat4(1.0f);
 		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
-		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
-		GLfloat displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		GLfloat angle = (GLfloat)i / (GLfloat)rockAmount * 360.0f;
+		GLfloat displacement = (rand() % (GLint)(2 * offset )) - offset;
 		GLfloat x = sin(angle) * radius + displacement;
-		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		displacement = (rand() % (GLint)(2 * offset)) - offset;
 		GLfloat y = displacement * 0.4f; // y value has smaller displacement
-		displacement = (rand() % (GLint)(2 * offset * 100)) / 100.0f - offset;
+		displacement = (rand() % (GLint)(2 * offset)) - offset;
 		GLfloat z = cos(angle) * radius + displacement;
 		model = glm::translate(model, glm::vec3(x, y, z));
-		// 2. Scale: Scale between 0.05 and 0.25f
-		GLfloat scale = (rand() % 20) / 10.0f + 0.5;
-		model = glm::scale(model, glm::vec3(scale));
+		// 2. Scale: Scale between 0.5 and 1.2f
+
+		float scale = (rand() % 6) / 10.0f + 0.7;
+		model = glm::scale(model, glm::vec3(scale,scale,scale));
 		// 3. Rotation: add random rotation around a (semi)randomly picked rotation axis vector
 		GLfloat rotAngle = (rand() % 360);
-		model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+		float rx = (1.0f + rand() % 10)/10.0f;
+		float ry = (1.0f + rand() % 10)/10.0f;
+		float rz = (1.0f + rand() % 10)/10.0f;
+		model = glm::rotate(model, rotAngle, glm::vec3(rx, ry, rz));
 		// 4. Now add to list of matrices
 		modelMatrices[i] = model;
 	}
@@ -291,17 +294,15 @@ int main()
 	CreateShaders();
 
 	//camera = Camera(glm::vec3(900*1000.0f, 50.0f, 8800*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -25.0f, 500.0f, 0.5f);
-	camera = Camera(glm::vec3(0.0f, 15000.0f, 200*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -3.5f, 5000.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 5000.0f, 200*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -2.0f, 5000.0f, 0.5f);
 
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
-	
-	
-	glm::mat4* matrices = GenerateRocksModelMatrices(rockAmount);
+	GenerateRocksModelMatrices();
 	rock = Model();
-	rock.LoadModelInstance("Models/rock.fbx", matrices, rockAmount);
-	//rock.LoadModel("Models/rock.fbx");
+	//rock.LoadModelInstance("Models/rock.obj", modelMatrices, rockAmount);
+	rock.LoadModel("Models/rock.fbx");
 
 	//std::cout << "Rocks count:" << models.size() << std::endl;
 
@@ -364,8 +365,9 @@ int main()
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
-	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
 
+	glm::mat4 projection = glm::perspective(glm::radians(50.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
+	glm::mat4 view = camera.calculateViewMatrix();
 	// Loop until window closed
 	GLfloat drawBegin;
 	GLfloat lastUpdateFPS = 0;
@@ -374,12 +376,12 @@ int main()
 		drawBegin = glfwGetTime(); // SDL_GetPerformanceCounter();
 		deltaTime = drawBegin - lastTime; // (now - lastTime)*1000/SDL_GetPerformanceFrequency();
 		lastTime = drawBegin;
-
-		// Get + Handle User Input
-		glfwPollEvents();
-
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		//camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
 
 		if (mainWindow.getsKeys()[GLFW_KEY_L])
 		{
@@ -397,14 +399,17 @@ int main()
 			OmniShadowMapPass(&spotLights[i]);
 		}
 
-		RenderPass(camera.calculateViewMatrix(), projection,deltaTime);
+		RenderPass(camera.calculateViewMatrix(), projection, deltaTime);
 
-
+		
 		mainWindow.swapBuffers();
+		// Get + Handle User Input
+		glfwPollEvents();
+
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
 		if (glfwGetTime() - lastUpdateFPS > 0.2) {
-			//std::cout << "FPS:" << fps << std::endl;
+			std::cout << "FPS:" << fps << std::endl;
 			lastUpdateFPS = glfwGetTime();
 		}
 		/*if (fps > 60) {
@@ -415,7 +420,7 @@ int main()
 		}*/
 	}
 
-	delete[] matrices;
+	delete[] modelMatrices;
 
 	return 0;
 }

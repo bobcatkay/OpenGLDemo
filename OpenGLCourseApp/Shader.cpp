@@ -123,7 +123,6 @@ void Shader::CompileProgram() {
 	uniformProjection = glGetUniformLocation(shaderID, "projection");
 	uniformModel = glGetUniformLocation(shaderID, "model");
 	uniformView = glGetUniformLocation(shaderID, "view");
-	uniformIntanceMode = glGetUniformLocation(shaderID, "instanceMode");
 	uniformDirectionalLight.uniformColour = glGetUniformLocation(shaderID, "directionalLight.base.colour");
 	uniformDirectionalLight.uniformAmbientIntensity = glGetUniformLocation(shaderID, "directionalLight.base.ambientIntensity");
 	uniformDirectionalLight.uniformDirection = glGetUniformLocation(shaderID, "directionalLight.direction");
@@ -270,11 +269,6 @@ GLuint Shader::GetFarPlaneLocation()
 	return uniformFarPlane;
 }
 
-GLuint Shader::GetUniformInstanceMode()
-{
-	return uniformIntanceMode;
-}
-
 void Shader::SetDirectionalLight(DirectionalLight * dLight)
 {
 	dLight->UseLight(uniformDirectionalLight.uniformAmbientIntensity, uniformDirectionalLight.uniformColour,
@@ -384,6 +378,16 @@ void Shader::AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderT
 	}
 
 	glAttachShader(theProgram, theShader);
+}
+
+void Shader::SetMat4(const std::string& name, const glm::mat4& mat)
+{
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::SetInt(const std::string& name, int value)
+{
+	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
 }
 
 Shader::~Shader()
