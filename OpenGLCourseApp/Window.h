@@ -25,10 +25,10 @@ public:
 
 	void swapBuffers() { glfwSwapBuffers(mainWindow); }
 
+	GLFWwindow* mainWindow;
 	~Window();
 
 private:
-	GLFWwindow* mainWindow;
 
 	GLint width, height;
 	GLint bufferWidth, bufferHeight;

@@ -44,7 +44,6 @@ std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 Shader directionalShadowShader;
 Shader omniShadowShader;
-//Shader instanceShader;
 
 Camera camera;
 
@@ -70,7 +69,7 @@ GLfloat lastTime = 0.0f;
 GLfloat rotateAngle = 0.0f;
 GLfloat rockRotateAngle = 0.0f;
 
-GLuint rockAmount = 1500;
+GLuint rockAmount = 500;
 glm::mat4* modelMatrices;
 
 // Vertex Shader
@@ -163,7 +162,6 @@ void RenderScene(GLfloat deltaTime)
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	jupitor.RenderModel();
-
 }
 
 void DirectionalShadowMapPass(DirectionalLight* light)
@@ -233,8 +231,8 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
 	shaderList[0].SetDirectionalLight(&mainLight);
-	shaderList[0].SetPointLights(pointLights, pointLightCount, 3, 0);
-	shaderList[0].SetSpotLights(spotLights, spotLightCount, 3 + pointLightCount, pointLightCount);
+	//shaderList[0].SetPointLights(pointLights, pointLightCount, 3, 0);
+	//shaderList[0].SetSpotLights(spotLights, spotLightCount, 3 + pointLightCount, pointLightCount);
 	shaderList[0].SetDirectionalLightTransform(&mainLight.CalculateLightTransform());
 
 	mainLight.getShadowMap()->Read(GL_TEXTURE2);
@@ -250,18 +248,18 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	RenderScene(deltaTime);
 }
 
-glm::mat4* GenerateRocksModelMatrices( ) {
+glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
 	
 	
-	modelMatrices = new glm::mat4[rockAmount];
+	modelMatrices = new glm::mat4[amount];
 	GLfloat radius = 180*1000.0f;
 	GLfloat offset = 15000.0f;
 	srand(glfwGetTime()); // initialize random seed
-	for (GLuint i = 0; i < rockAmount; i++)
+	for (GLuint i = 0; i < amount; i++)
 	{
 		glm::mat4 model=glm::mat4(1.0f);
 		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
-		GLfloat angle = (GLfloat)i / (GLfloat)rockAmount * 360.0f;
+		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 		GLfloat displacement = (rand() % (GLint)(2 * offset )) - offset;
 		GLfloat x = sin(angle) * radius + displacement;
 		displacement = (rand() % (GLint)(2 * offset)) - offset;
@@ -286,6 +284,24 @@ glm::mat4* GenerateRocksModelMatrices( ) {
 	return modelMatrices;
 }
 
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	// 当用户按下ESC键,我们设置window窗口的WindowShouldClose属性为true
+	// 关闭应用程序
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (key == GLFW_KEY_1) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (key == GLFW_KEY_2) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	if (key == GLFW_KEY_EQUAL) {
+		//glm::mat4* matrioces = GenerateRocksModelMatrices(100);
+		rockAmount += 100;
+		delete modelMatrices;
+		GenerateRocksModelMatrices(rockAmount);
+	}
+}
+
 int main() 
 {
 	mainWindow = Window(WindowWidth, WindowHeight); // 1280, 1024 or 1024, WindowHeight
@@ -299,7 +315,7 @@ int main()
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
-	GenerateRocksModelMatrices();
+	GenerateRocksModelMatrices(rockAmount);
 	rock = Model();
 	//rock.LoadModelInstance("Models/rock.obj", modelMatrices, rockAmount);
 	rock.LoadModel("Models/rock.fbx");
@@ -307,7 +323,7 @@ int main()
 	//std::cout << "Rocks count:" << models.size() << std::endl;
 
 	jupitor = Model();
-	jupitor.LoadModel("Models/jupitor.fbx");
+	jupitor.LoadModel("Models/jupitor2.fbx");
 
 
 
@@ -368,6 +384,8 @@ int main()
 
 	glm::mat4 projection = glm::perspective(glm::radians(50.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
 	glm::mat4 view = camera.calculateViewMatrix();
+
+	glfwSetKeyCallback(mainWindow.mainWindow, KeyCallback);
 	// Loop until window closed
 	GLfloat drawBegin;
 	GLfloat lastUpdateFPS = 0;
@@ -383,11 +401,11 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 
-		if (mainWindow.getsKeys()[GLFW_KEY_L])
+		/*if (mainWindow.getsKeys()[GLFW_KEY_L])
 		{
 			spotLights[0].Toggle();
 			mainWindow.getsKeys()[GLFW_KEY_L] = false;
-		}
+		}*/
 
 		DirectionalShadowMapPass(&mainLight);
 		for (size_t i = 0; i < pointLightCount; i++)
