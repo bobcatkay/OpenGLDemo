@@ -58,6 +58,8 @@ public:
 
 	void SetInt(const std::string& name, int value);
 
+	void SetFloat(const std::string& name, float value);
+
 	~Shader();
 
 private:

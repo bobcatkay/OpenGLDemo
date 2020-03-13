@@ -69,7 +69,7 @@ GLfloat lastTime = 0.0f;
 GLfloat rotateAngle = 0.0f;
 GLfloat rockRotateAngle = 0.0f;
 
-GLuint rockAmount = 500;
+GLuint rockAmount = 2000;
 glm::mat4* modelMatrices;
 
 // Vertex Shader
@@ -116,6 +116,7 @@ void CreateShaders()
 	omniShadowShader.CreateFromFiles("Shaders/omni_shadow_map.vert", "Shaders/omni_shadow_map.geom", "Shaders/omni_shadow_map.frag");
 }
 
+float deltaA = 0.0f;
 void RenderScene(GLfloat deltaTime)
 {
 	glm::mat4 model;
@@ -142,12 +143,45 @@ void RenderScene(GLfloat deltaTime)
 		ringModels[i].RenderModel();
 	}*/
 
-
-	//glUniform1i(uniformIntanceMode, 0);
-	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	deltaA = 0.001f * deltaTime;
+	float PI = 3.1415926f;
+	shaderList[0].SetFloat("deltaA", 0);
+	shaderList[0].SetFloat("radius", 180000.0f);
+	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	for (int i = 0; i < rockAmount; i++) {
 		glm::mat4 model = modelMatrices[i];
-		model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		float x = model[3].x;
+		float z = model[3].z;
+		glm::vec3 newPos;
+		float r = sqrt(x * x + z * z);
+		float sinA = z / r;
+		float A = asin(sinA);
+		//A += 0.5 * PI;
+		if (x <= 0 ) {
+			A += PI;
+		}
+		
+		/*if (x < 0 && z < 0) {
+			A = abs(A)+PI;
+		}
+		else if (x <0 && z>0) {
+			A = abs(A) + PI;
+		}*/
+		
+		A -= deltaA;
+		if (A < 0) {
+			A = A + 2 * PI;
+		}
+		
+		float newZ = r * sin(A);
+		float newX = r * cos(A);
+
+		newPos = glm::vec3(newX, model[3].y, newZ);
+		//newModel[3] = vec4(newPos.x, newPos.y, newPos.z, newModel[3].w);
+
+		//model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		model[3] = glm::vec4(newPos, 1.0f);
+		modelMatrices[i] = model;
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		rock.RenderModel();
 	}
@@ -158,7 +192,7 @@ void RenderScene(GLfloat deltaTime)
 	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
-	//glUniform1i(uniformIntanceMode, 0);
+	shaderList[0].SetFloat("deltaA", 0.0f);
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	jupitor.RenderModel();
@@ -261,12 +295,12 @@ glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
 		// 1. Translation: displace along circle with 'radius' in range [-offset, offset]
 		GLfloat angle = (GLfloat)i / (GLfloat)amount * 360.0f;
 		GLfloat displacement = (rand() % (GLint)(2 * offset )) - offset;
-		GLfloat x = sin(angle) * radius + displacement;
+		GLfloat z = sin(angle) * radius + displacement;
 		displacement = (rand() % (GLint)(2 * offset)) - offset;
 		GLfloat y = displacement * 0.4f; // y value has smaller displacement
 		displacement = (rand() % (GLint)(2 * offset)) - offset;
-		GLfloat z = cos(angle) * radius + displacement;
-		model = glm::translate(model, glm::vec3(x, y, z));
+		GLfloat x = cos(angle) * radius + displacement;
+		model = glm::translate(model, glm::vec3(x, y / 5.0f, z));
 		// 2. Scale: Scale between 0.5 and 1.2f
 
 		float scale = (rand() % 6) / 10.0f + 0.7;
@@ -310,7 +344,7 @@ int main()
 	CreateShaders();
 
 	//camera = Camera(glm::vec3(900*1000.0f, 50.0f, 8800*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -25.0f, 500.0f, 0.5f);
-	camera = Camera(glm::vec3(0.0f, 5000.0f, 200*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -2.0f, 5000.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 5000.0f, 250*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -2.0f, 50000.0f, 0.5f);
 
 	shinyMaterial = Material(4.0f, 256);
 	dullMaterial = Material(0.3f, 4);
@@ -323,14 +357,14 @@ int main()
 	//std::cout << "Rocks count:" << models.size() << std::endl;
 
 	jupitor = Model();
-	jupitor.LoadModel("Models/jupitor2.fbx");
+	jupitor.LoadModel("Models/jupitor.fbx");
 
 
 
 	mainLight = DirectionalLight(1024, 1024,
 								1.0f, 0.9f, 0.9f, 
 								0.00f, 0.9f,
-								30.0f, -10.0f, -50.0f);
+								30.0f, -10.0f, -40.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
 		0.01f, 100.0f,
@@ -385,7 +419,8 @@ int main()
 	glm::mat4 projection = glm::perspective(glm::radians(50.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
 	glm::mat4 view = camera.calculateViewMatrix();
 
-	glfwSetKeyCallback(mainWindow.mainWindow, KeyCallback);
+	//glfwSetKeyCallback(mainWindow.mainWindow, KeyCallback);
+
 	// Loop until window closed
 	GLfloat drawBegin;
 	GLfloat lastUpdateFPS = 0;
@@ -427,7 +462,7 @@ int main()
 		
 		float fps = 1.0f/(glfwGetTime() - drawBegin);
 		if (glfwGetTime() - lastUpdateFPS > 0.2) {
-			std::cout << "FPS:" << fps << std::endl;
+			//std::cout << "FPS:" << fps << std::endl;
 			lastUpdateFPS = glfwGetTime();
 		}
 		/*if (fps > 60) {
