@@ -46,6 +46,7 @@ std::vector<Shader> shaderList;
 Shader directionalShadowShader;
 Shader omniShadowShader;
 Shader textShader;
+Shader tsShader;
 
 Camera camera;
 
@@ -121,6 +122,7 @@ void CreateShaders()
 	directionalShadowShader.CreateFromFiles("Shaders/directional_shadow_map.vert", "Shaders/directional_shadow_map.frag");
 	omniShadowShader.CreateFromFiles("Shaders/omni_shadow_map.vert", "Shaders/omni_shadow_map.geom", "Shaders/omni_shadow_map.frag");
 	textShader.CreateFromFiles("Shaders/text.vert", "Shaders/text.frag");
+	//tsShader.CreateFromFiles("Shaders/ts.vert", "Shaders/ts.frag");
 }
 
 double deltaA = 0.0;
@@ -141,8 +143,6 @@ void RenderScene(GLfloat deltaTime)
 	}
 
 	deltaA = 0.001 * deltaTime;
-	shaderList[0].SetFloat("deltaA", 0);
-	shaderList[0].SetFloat("radius", 180000.0f);
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	for (int i = 0; i < rockAmount; i++) {
 		glm::mat4 model = modelMatrices[i];
@@ -171,7 +171,6 @@ void RenderScene(GLfloat deltaTime)
 		newPos = glm::vec3(newX, model[3].y, newZ);
 		model[3] = glm::vec4(newPos, 1.0f);
 		modelMatrices[i] = model;
-
 		model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		rock.RenderModel();
@@ -183,7 +182,6 @@ void RenderScene(GLfloat deltaTime)
 	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
-	shaderList[0].SetFloat("deltaA", 0.0f);
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	jupitor.RenderModel();
@@ -242,6 +240,7 @@ void RenderPass(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, GLfloat deltaT
 	skybox.DrawSkybox(viewMatrix, projectionMatrix);
 
 	shaderList[0].UseShader();
+	//tsShader.UseShader();
 
 	uniformModel = shaderList[0].GetModelLocation();
 	uniformProjection = shaderList[0].GetProjectionLocation();
@@ -431,7 +430,7 @@ int main()
 		deltaTime = drawBegin - lastTime; // (now - lastTime)*1000/SDL_GetPerformanceFrequency();
 		lastTime = drawBegin;
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		//camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -468,9 +467,7 @@ int main()
 
 		frameTimeTotal += (glfwGetTime() - drawBegin);
 		frames++;
-		//float fps = 1.0f/(glfwGetTime() - drawBegin);
 		if (glfwGetTime() - lastUpdateFPS > 0.3) {
-			//std::cout << "FPS:" << fps << std::endl;
 			fps =(int)( 1.0f / (frameTimeTotal / frames));
 			lastUpdateFPS = glfwGetTime();
 			frameTimeTotal = 0;

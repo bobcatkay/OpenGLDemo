@@ -37,6 +37,8 @@ void Shader::CreateFromFiles(const char* vertexLocation, const char* geometryLoc
 	CompileShader(vertexCode, geometryCode, fragmentCode);
 }
 
+
+
 std::string Shader::ReadFile(const char* fileLocation)
 {
 	std::string content;
@@ -68,6 +70,7 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 		return;
 	}
 
+
 	AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
 	AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
 
@@ -87,6 +90,7 @@ void Shader::CompileShader(const char* vertexCode, const char* geometryCode, con
 	AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
 	AddShader(shaderID, geometryCode, GL_GEOMETRY_SHADER);
 	AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
+
 
 	CompileProgram();
 }
@@ -393,6 +397,11 @@ void Shader::SetInt(const std::string& name, int value)
 void Shader::SetFloat(const std::string& name, float value)
 {
 	glUniform1f(glGetUniformLocation(shaderID, name.c_str()), value);
+}
+
+void Shader::SetDouble(const std::string& name, double value)
+{
+	glUniform1d(glGetUniformLocation(shaderID, name.c_str()), value);
 }
 
 void Shader::SetVec3(const std::string& name, glm::vec3 value)
