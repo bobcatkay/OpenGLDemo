@@ -5,10 +5,10 @@
 #include <cmath>
 #include <vector>
 #include <ctime>
+#include <sstream>
 
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
-
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
@@ -24,10 +24,11 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Material.h"
-
 #include "Model.h"
-
 #include "Skybox.h"
+#include "Text.h"
+
+double PI = acosl(-1);
 
 unsigned int WindowWidth = 1920;
 unsigned int WindowHeight = 1080;
@@ -44,6 +45,7 @@ std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 Shader directionalShadowShader;
 Shader omniShadowShader;
+Shader textShader;
 
 Camera camera;
 
@@ -69,7 +71,7 @@ GLfloat lastTime = 0.0f;
 GLfloat rotateAngle = 0.0f;
 GLfloat rockRotateAngle = 0.0f;
 
-GLuint rockAmount = 2000;
+GLuint rockAmount =2000;
 glm::mat4* modelMatrices;
 
 // Vertex Shader
@@ -77,6 +79,10 @@ static const char* vShader = "Shaders/shader.vert";
 
 // Fragment Shader
 static const char* fShader = "Shaders/shader.frag";
+
+Text text;
+
+std::string fontPath = "Fonts/Amiko-Regular.ttf";
 
 void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount, 
 						unsigned int vLength, unsigned int normalOffset)
@@ -114,9 +120,10 @@ void CreateShaders()
 
 	directionalShadowShader.CreateFromFiles("Shaders/directional_shadow_map.vert", "Shaders/directional_shadow_map.frag");
 	omniShadowShader.CreateFromFiles("Shaders/omni_shadow_map.vert", "Shaders/omni_shadow_map.geom", "Shaders/omni_shadow_map.frag");
+	textShader.CreateFromFiles("Shaders/text.vert", "Shaders/text.frag");
 }
 
-float deltaA = 0.0f;
+double deltaA = 0.0;
 void RenderScene(GLfloat deltaTime)
 {
 	glm::mat4 model;
@@ -127,61 +134,45 @@ void RenderScene(GLfloat deltaTime)
 		rotateAngle = 0.1f;
 	}
 
-	rockRotateAngle += 10.5f * deltaTime;
+	rockRotateAngle += 5.0f * deltaTime;
 	if (rockRotateAngle > 360.0f)
 	{
 		rockRotateAngle = 0.1f;
 	}
 
-	/*for (size_t i = 0; i < ringModels.size(); i++) {
-		model = glm::mat4();
-		model = glm::rotate(model, rockRotateAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::translate(model, ringModels[i].initPosition);
-		model = glm::scale(model, ringModels[i].initScale);
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
-		ringModels[i].RenderModel();
-	}*/
-
-	deltaA = 0.001f * deltaTime;
-	float PI = 3.1415926f;
+	deltaA = 0.001 * deltaTime;
 	shaderList[0].SetFloat("deltaA", 0);
 	shaderList[0].SetFloat("radius", 180000.0f);
-	shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 	for (int i = 0; i < rockAmount; i++) {
 		glm::mat4 model = modelMatrices[i];
-		float x = model[3].x;
-		float z = model[3].z;
+		double x = model[3].x;
+		double z = model[3].z;
 		glm::vec3 newPos;
-		float r = sqrt(x * x + z * z);
-		float sinA = z / r;
-		float A = asin(sinA);
-		//A += 0.5 * PI;
-		if (x <= 0 ) {
+		double r = sqrtl(x * x + z * z);
+		double sinA = z / r;
+		double A = asinl(sinA);
+		if (x >= 0 && z <= 0) {
+			A = -A;
+		}
+		else if (x > 0 && z > 0) {
+			A = 2 * PI - A;
+		}
+		else{
 			A += PI;
 		}
-		
-		/*if (x < 0 && z < 0) {
-			A = abs(A)+PI;
-		}
-		else if (x <0 && z>0) {
-			A = abs(A) + PI;
-		}*/
-		
-		A -= deltaA;
-		if (A < 0) {
-			A = A + 2 * PI;
+		A += deltaA;
+		if (A > 2.0*PI) {
+			A = A - 2*PI;
 		}
 		
-		float newZ = r * sin(A);
-		float newX = r * cos(A);
-
+		double newZ = -r * sinl(A);
+		double newX = r * cosl(A);
 		newPos = glm::vec3(newX, model[3].y, newZ);
-		//newModel[3] = vec4(newPos.x, newPos.y, newPos.z, newModel[3].w);
-
-		//model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 		model[3] = glm::vec4(newPos, 1.0f);
 		modelMatrices[i] = model;
+
+		model = glm::rotate(model, rockRotateAngle* toRadians, glm::vec3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		rock.RenderModel();
 	}
@@ -191,7 +182,7 @@ void RenderScene(GLfloat deltaTime)
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, -90.0f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, rotateAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+	model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
 	shaderList[0].SetFloat("deltaA", 0.0f);
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -286,7 +277,7 @@ glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
 	
 	
 	modelMatrices = new glm::mat4[amount];
-	GLfloat radius = 180*1000.0f;
+	GLfloat radius = 960*1000.0f;
 	GLfloat offset = 15000.0f;
 	srand(glfwGetTime()); // initialize random seed
 	for (GLuint i = 0; i < amount; i++)
@@ -301,9 +292,9 @@ glm::mat4* GenerateRocksModelMatrices(GLuint amount) {
 		displacement = (rand() % (GLint)(2 * offset)) - offset;
 		GLfloat x = cos(angle) * radius + displacement;
 		model = glm::translate(model, glm::vec3(x, y / 5.0f, z));
-		// 2. Scale: Scale between 0.5 and 1.2f
 
-		float scale = (rand() % 6) / 10.0f + 0.7;
+		//rand() % (b-a+1)+ a  a~b 0.5~8.0
+		float scale = ((rand() % 56) + 5.0)/10.0f;
 		model = glm::scale(model, glm::vec3(scale,scale,scale));
 		// 3. Rotation: add random rotation around a (semi)randomly picked rotation axis vector
 		GLfloat rotAngle = (rand() % 360);
@@ -344,10 +335,10 @@ int main()
 	CreateShaders();
 
 	//camera = Camera(glm::vec3(900*1000.0f, 50.0f, 8800*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -25.0f, 500.0f, 0.5f);
-	camera = Camera(glm::vec3(0.0f, 5000.0f, 250*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -2.0f, 50000.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 5000.0f, 1000*1000.0f), glm::vec3(0.0f, 1.0f, 0.0f), 268.0f, -0.1f, 50000.0f, 0.5f);
 
 	shinyMaterial = Material(4.0f, 256);
-	dullMaterial = Material(0.3f, 4);
+	dullMaterial = Material(0.2f, 2);
 
 	GenerateRocksModelMatrices(rockAmount);
 	rock = Model();
@@ -364,7 +355,7 @@ int main()
 	mainLight = DirectionalLight(1024, 1024,
 								1.0f, 0.9f, 0.9f, 
 								0.00f, 0.9f,
-								30.0f, -10.0f, -40.0f);
+								30.0f, -10.0f, -50.0f);
 
 	pointLights[0] = PointLight(1024, 1024,
 		0.01f, 100.0f,
@@ -404,33 +395,43 @@ int main()
 
 
 	std::vector<std::string> skyboxFaces;
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
-	skyboxFaces.push_back("Textures/Skybox/space.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/px.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/nx.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/py.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/ny.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/pz.jpg");
+	skyboxFaces.push_back("Textures/Skybox/star_milkyway/nz.jpg");
 
 	skybox = Skybox(skyboxFaces);
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
 
-	glm::mat4 projection = glm::perspective(glm::radians(50.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600000.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(70.0f), (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 9000000.0f);
 	glm::mat4 view = camera.calculateViewMatrix();
+
+	//text projection
+	glm::mat4 textProjection= glm::ortho(0.0f, static_cast<GLfloat>(WindowWidth), 0.0f, static_cast<GLfloat>(WindowHeight));
+	textShader.UseShader();
+	textShader.SetMat4("projection",textProjection);
+
+	text.Init(WindowWidth, WindowHeight, fontPath);
 
 	//glfwSetKeyCallback(mainWindow.mainWindow, KeyCallback);
 
 	// Loop until window closed
 	GLfloat drawBegin;
 	GLfloat lastUpdateFPS = 0;
+	float frameTimeTotal = 0;
+	int frames = 0;
+	int fps = 0;
 	while (!mainWindow.getShouldClose())
 	{
 		drawBegin = glfwGetTime(); // SDL_GetPerformanceCounter();
 		deltaTime = drawBegin - lastTime; // (now - lastTime)*1000/SDL_GetPerformanceFrequency();
 		lastTime = drawBegin;
 		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		//camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -455,22 +456,26 @@ int main()
 		RenderPass(camera.calculateViewMatrix(), projection, deltaTime);
 
 		
+
+		std::ostringstream fpsText;
+		fpsText << "FPS "<< fps;
+		text.RenderText(textShader, fpsText.str() , 25.0f, WindowHeight - 50.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+
+		
 		mainWindow.swapBuffers();
 		// Get + Handle User Input
 		glfwPollEvents();
 
-		
-		float fps = 1.0f/(glfwGetTime() - drawBegin);
-		if (glfwGetTime() - lastUpdateFPS > 0.2) {
+		frameTimeTotal += (glfwGetTime() - drawBegin);
+		frames++;
+		//float fps = 1.0f/(glfwGetTime() - drawBegin);
+		if (glfwGetTime() - lastUpdateFPS > 0.3) {
 			//std::cout << "FPS:" << fps << std::endl;
+			fps =(int)( 1.0f / (frameTimeTotal / frames));
 			lastUpdateFPS = glfwGetTime();
+			frameTimeTotal = 0;
+			frames = 0;
 		}
-		/*if (fps > 60) {
-			models.push_back(bowlingPing);
-		}
-		else if (fps < 30 && models.size()>10) {
-			models.pop_back();
-		}*/
 	}
 
 	delete[] modelMatrices;
